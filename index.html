@@ -386,7 +386,8 @@
         ---------------------------*/
         let apiKey = localStorage.getItem("evyon_api_key");
         let currentUserData = null;
-        let conversationHistory = []; 
+        let conversationHistory = [];
+        let lastDenialIndex = -1;
 
         const INSTITUTION_DB = {
             "tec": { 
