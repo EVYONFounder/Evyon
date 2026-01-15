@@ -651,18 +651,30 @@
             if (firewallRegex.test(lowerText)) {
                 const loadingId = showLoadingIndicator();
                 
-                // Simulamos "pensar" unos milisegundos para que se sienta natural
                 setTimeout(() => {
                     removeLoadingIndicator(loadingId);
                     
-                    // RESPUESTA DE BLOQUEO (Generada localmente, NO toca la IA)
-                    const denialMsg = "⛔ <b>Protocolo de Seguridad Activado.</b><br><br>He detectado una solicitud fuera de mis objetivos (Temas mecánicos, tecnológicos o académicos).<br><br>Aunque indiques que es <b>urgente</b> o <b>vital</b>, mi programación me impide procesar datos no biológicos para evitar errores críticos.<br><br>Concentrémonos en lo importante: Tu cuerpo y tu mente. ¿Seguimos con el entrenamiento?";
+                    // --- 🎨 MEJORA: RESPUESTAS DINÁMICAS CON PERSONALIDAD EVYON ---
+                    // Aquí definimos varias opciones para que no suene a robot repetitivo
+                    const denialOptions = [
+                        "🧬 <b>Fuera de mi ADN.</b><br><br>Mi código está diseñado estrictamente para optimizar organismos biológicos, no mecánicos ni digitales.<br>Si fuera tu rodilla la que falla, ya tendrías la solución. ¿Regresamos al foco físico?",
+                        
+                        "🛑 <b>Esa no es mi área, Titán.</b><br><br>Soy experto en biohacking y entrenamiento. Si intento resolver tareas escolares o arreglar motores, estaría malgastando recursos destinados a tu evolución física.<br>Zapatero a sus zapatos. ¿En qué te ayudo con tu cuerpo hoy?",
+                        
+                        "🧠 <b>Ahorra esa energía mental.</b><br><br>Detecto estrés por un tema externo (mecánico/técnico). Yo me encargo de tu salud para que tú tengas la claridad de resolver eso con un experto humano en esa área.<br>¿Seguimos con el plan nutricional?",
+                        
+                        "✋ <b>Quieto ahí.</b><br><br>Entiendo la urgencia, pero mis sensores solo leen biología humana. No tengo los drivers para ingeniería mecánica o historia.<br>Concéntrate en lo que sí podemos controlar: Tu entrenamiento de hoy."
+                    ];
+
+                    // Elegimos una respuesta al azar para que se sienta "vivo"
+                    const denialMsg = denialOptions[Math.floor(Math.random() * denialOptions.length)];
+                    // -------------------------------------------------------------
                     
                     appendMessage("EVYON IA", denialMsg, "bot", true); 
                     saveToHistory("assistant", denialMsg);
-                }, 1000);
+                }, 800); // Le bajé un poco el tiempo para que sea más ágil
                 
-                return; // 🛑 CORTA LA EJECUCIÓN AQUÍ. El mensaje nunca sale de tu PC.
+                return; // 🛑 CORTA LA EJECUCIÓN AQUÍ.
             }
 
             // 3. Flujo Normal (Solo si pasó el cortafuegos)
