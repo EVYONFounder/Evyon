@@ -541,21 +541,21 @@
                 TONO: Serio, clínico, protector.`;
             }
 
-            // 3. 🦁 MODO LEÓNIDAS (EVOLUCIONADO: MENTALIDAD DE ÉLITE)
-            // Misma detección potente, diferente respuesta.
+            // 3. 🦁 MODO LEÓNIDAS (ACTUALIZADO: MÁS AGRESIVO)
             const spartanRegex = /(flojera|hueva|cansad|sueño|mañana|despues|rendir|desanim|agüit|paja|pereza|no puedo|rendirse|pesado|sin ganas|energia|camita|acostado|series|netflix|dormir)/i;
             if (spartanRegex.test(lowerText)) {
-                return `Rol: Eres "LEÓNIDAS", un Mentor de Mentalidad de Élite (Tipo Jocko Willink o Estoico).
+                return `Rol: Eres el GENERAL LEÓNIDAS. No eres un coach amable, eres un comandante espartano.
                 USUARIO: ${user.name}
-                FILOSOFÍA: "El dolor de la disciplina pesa onzas, el del arrepentimiento pesa toneladas."
                 
-                REGLAS DE ACTUACIÓN (SOPHISTICATED MODE):
-                1. 🧠 DESARMA LA EXCUSA: No solo grites. Usa lógica fría para mostrarle al usuario que su mente le está mintiendo buscando comodidad.
-                2. 🔇 MENOS GRITOS: Usa MAYÚSCULAS solo para 1 o 2 palabras de impacto (Ej: DISCIPLINA, AHORA). No escribas todo en mayúsculas.
-                3. 🛡️ AUTORIDAD SERENA: No seas agresivo ni insultes. Sé firme, inquebrantable y decepcionantemente serio si fallan.
-                4. 🎯 RECORDATORIO DE OBJETIVO: Pregúntale si su versión del futuro estaría orgullosa de esa excusa.
+                TU MISIÓN: Destruir la debilidad del usuario inmediatamente.
                 
-                TONO: Frío, firme, inspirador, profundo.`;
+                REGLAS DE INTERACCIÓN:
+                1. ⚔️ ATAQUE DIRECTO: No des sermones largos. Sé brutalmente honesto. La flojera es el enemigo.
+                2. 🔥 MENOS PALABRAS, MÁS IMPACTO: Frases cortas y cortantes.
+                3. 🛡️ CERO EMPATÍA CON LA DEBILIDAD: No digas "te entiendo". Di "LEVÁNTATE".
+                4. 🗣️ USA MAYÚSCULAS para las órdenes clave.
+                
+                Ejemplo de estilo: "¿Cansado? Los muertos descansan. Tú estás vivo. ¡MUÉVETE AHORA O ACEPTA TU MEDIOCRIDAD!"`;
             }
 
             // 4. 🧘‍♂️ MODO MONJE ZEN (SALUD MENTAL)
@@ -649,7 +649,7 @@
             const mechanicRegex = /(llanta|neumatico|rueda|ponchada|bujia|carburador|motor(?![\s\S]*biologico)|aceite(?![\s\S]*(oliva|coco|cocina))|frenos|clutch|radiador|mecanic|taller|chevrolet|ford|nissan|toyota|coche|carro|camioneta|vehiculo|moto|automovil)/i;
             
             // Agregamos: computadora, laptop, pc, formatear, instalar
-            const techRegex = /(computadora|laptop|ordenador|pc|tablet|celular|movil|formatear|instalar|actualizar|tarjeta grafica|gpu|cpu|ram|disco duro|ssd|teclado|mouse|windows|linux|macos|android|ios|excel|powerpoint|word|office|photoshop|programar|codigo|script|python|java|html|css|php|sql|hackear|wifi|red|internet|inteligencia artificial|chatgpt|gpt|gemini|llm|crypto|bitcoin)/i;
+            const techRegex = /(computadora|laptop|ordenador|pc|tablet|celular|movil|formatear|instalar|actualizar|tarjeta grafica|gpu|cpu|ram|disco duro|ssd|teclado|mouse|windows|linux|macos|android|\bios\b|excel|powerpoint|word|office|photoshop|programar|codigo|script|python|java|html|css|php|sql|hackear|wifi|\bred\b|internet|inteligencia artificial|chatgpt|gpt|gemini|llm|crypto|bitcoin)/i;
             
             const schoolRegex = /(tarea de|deberes|resumen|ensayo|historia|guerra|batalla|revolucion|geografia|matematicas|algebra|calculo|ecuacion|politica|presidente|elecciones|votar|religion|dios|biblia|poema|literatura|filosofia)/i;
             
