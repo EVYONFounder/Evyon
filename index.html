@@ -652,36 +652,37 @@
             const loveRegex = /(novia|novio|pareja|amor|ligar|cita|romance|sexo|poema de amor|exnovia)/i;
             const entertainmentRegex = /(pelicula|serie|netflix|cine|videojuego|consola|playstation|xbox|nintendo|meme|chiste)/i;
 
+            // --- BANCOS DE RESPUESTAS (OPTIMIZACIÓN BIOLÓGICA INTEGRAL) ---
             const denials = {
                 mechanic: [
-                    "🔧 <b>Soy mecánico de músculos, no de metal.</b><br>Si tu coche falla, llama a la grúa. Si tu cuerpo falla, aquí estoy yo. ¿Volvemos al entrenamiento?",
-                    "🏎️ <b>Esa máquina tiene repuestos, tú no.</b><br>No pierdas tiempo preguntándome sobre motores. Mi especialidad es tu motor biológico.",
-                    "🛑 <b>Error de Taller.</b><br>Mis diagnósticos son para rodillas, no para carburadores. Llama a un mecánico real."
+                    "🔧 <b>Ingeniería biológica, no mecánica.</b><br>Si tu vehículo falla, busca un taller. Si tu rendimiento físico o energía fallan, aquí estoy yo. ¿Revisamos tus niveles de energía?",
+                    "🏎️ <b>Tu cuerpo es la máquina más compleja.</b><br>No pierdas tiempo preguntándome sobre motores de combustión. Mi especialidad es optimizar tu motor metabólico.",
+                    "🛑 <b>Error de Dominio.</b><br>Mis diagnósticos son para optimizar tu salud y movimiento, no para reparar metales. Enfócate en tu maquinaria biológica."
                 ],
                 tech: [
-                    "🤖 <b>Entre IAs no nos pisamos la manguera.</b><br>No opino sobre otras IAs ni arreglo impresoras. Yo construyo físicos estéticos. ¿Te interesa?",
-                    "💻 <b>Mi CPU es para tu cuerpo.</b><br>No escribo código ni analizo criptomonedas. Hackeo tu metabolismo. ¿Seguimos con el plan?",
-                    "🚫 <b>Acceso a Módulo IT denegado.</b><br>Soy tu coach, no tu soporte técnico. Deja la pantalla y agarra una pesa."
+                    "🤖 <b>Soy especialista en Hardware Humano.</b><br>No reparo computadoras ni opino sobre otras IAs. Me dedico a que tu sistema nervioso y muscular funcionen al 100%.",
+                    "💻 <b>Tu sistema operativo es mi prioridad.</b><br>Deja los problemas técnicos digitales a soporte. Vamos a hackear tus hábitos para mejorar tu rendimiento real.",
+                    "🚫 <b>Enfoque en el mundo real.</b><br>La tecnología es una herramienta, pero tu cuerpo es el vehículo. Desconéctate un momento y trabajemos en tu bienestar."
                 ],
                 school: [
-                    "📚 <b>El cerebro se entrena estudiando.</b><br>No voy a hacer tu tarea. Eso sería como levantar las pesas por ti: tú no ganarías el músculo mental.",
-                    "🧠 <b>Ahorra esa energía para el gym.</b><br>La historia es importante, pero yo me encargo de tu futuro físico. Haz tu tarea y luego entrenamos."
+                    "📚 <b>La claridad mental se cultiva.</b><br>No haré tu tarea, eso atrofia tu capacidad cognitiva. Resuélvelo tú y yo te ayudo a nutrir tu cerebro para que pienses mejor.",
+                    "🧠 <b>Potencia tu neuroplasticidad.</b><br>El aprendizaje es el entrenamiento del cerebro. Yo me encargo de darte la energía y salud para que puedas aprender cualquier cosa."
                 ],
                 home: [
-                    "🏠 <b>Zapatero a sus zapatos.</b><br>No sé arreglar fugas de agua, pero sé cómo evitar que retengas líquidos. ¿Hablamos de eso?",
-                    "⚡ <b>Cuidado con la corriente.</b><br>No soy electricista. Soy experto en la energía que mueve tus músculos. Enfoquémonos en eso."
+                    "🏠 <b>Construye cimientos biológicos.</b><br>No sé de plomería, pero sé cómo optimizar tu hidratación y entorno de descanso. ¿Hablamos de cómo mejorar tu sueño?",
+                    "⚡ <b>Energía vital vs Corriente eléctrica.</b><br>Llama a un técnico para la casa. Tú y yo tenemos que calibrar tu energía interna para que rindas en tu día a día."
                 ],
                 money: [
-                    "💰 <b>La mejor inversión eres tú.</b><br>No doy consejos financieros, pero un cuerpo sano es el activo más valioso que tienes. Trabajemos en eso.",
-                    "📉 <b>No analizo el mercado, analizo tu grasa.</b><br>Deja las finanzas para el contador. Aquí venimos a generar ganancias musculares."
+                    "💰 <b>Tu salud es tu mayor activo.</b><br>No doy consejos financieros, pero un cuerpo y mente optimizados generan el mejor retorno de inversión a largo plazo. Invierte en ti.",
+                    "📉 <b>Gestión de recursos vitales.</b><br>Deja las finanzas para el contador. Aquí venimos a gestionar tu energía, nutrición y descanso para que seas más productivo."
                 ],
                 love: [
-                    "💔 <b>No soy Cupido, soy tu Entrenador.</b><br>Si quieres atraer pareja, ponte en forma y mejora tu confianza. En eso sí puedo ayudarte.",
-                    "🧪 <b>Eso es oxitocina, no testosterona.</b><br>Mis algoritmos no entienden de romance, solo de rendimiento físico. Canaliza esa pasión en las pesas."
+                    "❤️ <b>Bioquímica interna.</b><br>No soy consejero de citas. Mi trabajo es optimizar tu balance hormonal y confianza. Cuando te sientes bien, todo lo demás fluye.",
+                    "🧪 <b>Todo empieza contigo.</b><br>Mis algoritmos se centran en tu bienestar individual. Mejora tu relación con tu cuerpo y tu salud, y lo demás llegará solo."
                 ],
                 entertainment: [
-                    "🎬 <b>Corta la escena.</b><br>No soy crítico de cine ni tengo Netflix. Soy el director de tu transformación física. ¡Acción!",
-                    "🎮 <b>Game Over a la distracción.</b><br>La vida no es un videojuego, no tienes vidas extra. Cuida el cuerpo que tienes ahora."
+                    "🎬 <b>Acción real vs Ficción.</b><br>La vida no es una película. Tú eres el protagonista de tu salud. Deja la pantalla y toma una decisión que mejore tu realidad hoy.",
+                    "🎮 <b>Sube de nivel en la vida real.</b><br>No hay vidas extra aquí. Cuida el único cuerpo que tienes. ¿Qué hábito podemos mejorar hoy?"
                 ]
             };
 
