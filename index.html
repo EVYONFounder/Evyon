@@ -639,25 +639,18 @@
             const oldSuggestions = document.querySelector('.suggestions-container');
             if(oldSuggestions) oldSuggestions.remove();
 
-            // 2. 🛡️ CORTAFUEGOS CONTEXTUAL V4.1 (COBERTURA TOTAL)
+            // 2. 🛡️ CORTAFUEGOS CONTEXTUAL V4.1
             const lowerText = text.toLowerCase();
             
-            // --- RADARES ESPECÍFICOS ---
+            // RADARES
             const mechanicRegex = /(llanta|neumatico|rueda|ponchada|bujia|carburador|motor(?![\s\S]*biologico)|aceite(?![\s\S]*(oliva|coco|cocina))|frenos|clutch|radiador|mecanic|taller|chevrolet|ford|nissan|toyota|coche|carro|camioneta|vehiculo|moto)/i;
-            
-            // Agregamos IA, Chatgpt, Crypto y Redes
             const techRegex = /(tarjeta grafica|gpu|cpu|ram|disco duro|ssd|teclado|mouse|windows|linux|macos|android|ios|excel|powerpoint|word|office|photoshop|programar|codigo|script|python|java|html|css|php|sql|hackear|wifi|red|internet|inteligencia artificial|chatgpt|gpt|gemini|llm|crypto|bitcoin)/i;
-            
             const schoolRegex = /(tarea de|deberes|resumen|ensayo|historia|guerra|batalla|revolucion|geografia|matematicas|algebra|calculo|ecuacion|politica|presidente|elecciones|votar|religion|dios|biblia|poema|literatura)/i;
-            
             const homeRegex = /(fontanero|plomero|tubería|electricista|foco|pintar casa|impermeabilizar|lavadora|estufa|refrigerador|jardineria)/i;
-
-            // Nuevas categorías para cubrir "otros rubros"
             const moneyRegex = /(invertir|dinero|bolsa de valores|prestamo|banco|tarjeta de credito|ganar dinero|millonario|negocio)/i;
             const loveRegex = /(novia|novio|pareja|amor|ligar|cita|romance|sexo|poema de amor|exnovia)/i;
             const entertainmentRegex = /(pelicula|serie|netflix|cine|videojuego|consola|playstation|xbox|nintendo|meme|chiste)/i;
 
-            // --- BANCOS DE RESPUESTAS ---
             const denials = {
                 mechanic: [
                     "🔧 <b>Soy mecánico de músculos, no de metal.</b><br>Si tu coche falla, llama a la grúa. Si tu cuerpo falla, aquí estoy yo. ¿Volvemos al entrenamiento?",
@@ -693,7 +686,6 @@
 
             let selectedDenial = null;
 
-            // --- LÓGICA DE SELECCIÓN CONTEXTUAL ---
             if (mechanicRegex.test(lowerText)) selectedDenial = denials.mechanic;
             else if (techRegex.test(lowerText)) selectedDenial = denials.tech;
             else if (schoolRegex.test(lowerText)) selectedDenial = denials.school;
@@ -709,7 +701,6 @@
                 ];
             }
 
-            // SI HUBO BLOQUEO, ELEGIMOS FRASE SIN REPETIR
             if (selectedDenial) {
                 const loadingId = showLoadingIndicator();
                 setTimeout(() => {
@@ -726,10 +717,10 @@
                     appendMessage("EVYON IA", msg, "bot", true); 
                     saveToHistory("assistant", msg);
                 }, 800);
-                return; 
+                return; // 🛑 CORTA LA EJECUCIÓN
             }
 
-            // 3. Flujo Normal (Solo si pasó el cortafuegos)
+            // 3. Flujo Normal
             const loadingId = showLoadingIndicator();
             const systemPrompt = getDynamicSystemPrompt(text, currentUserData);
             
