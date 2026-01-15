@@ -640,54 +640,64 @@
             const oldSuggestions = document.querySelector('.suggestions-container');
             if(oldSuggestions) oldSuggestions.remove();
 
-            // 2. 🛡️ CORTAFUEGOS CONTEXTUAL V4.1
+            // ------------------------------------------------------------------
+            // 2. 🛡️ CORTAFUEGOS CONTEXTUAL V5.0 (CONCIERGE BIOLÓGICO)
+            // ------------------------------------------------------------------
             const lowerText = text.toLowerCase();
             
-            // RADARES
-            const mechanicRegex = /(llanta|neumatico|rueda|ponchada|bujia|carburador|motor(?![\s\S]*biologico)|aceite(?![\s\S]*(oliva|coco|cocina))|frenos|clutch|radiador|mecanic|taller|chevrolet|ford|nissan|toyota|coche|carro|camioneta|vehiculo|moto)/i;
-            const techRegex = /(tarjeta grafica|gpu|cpu|ram|disco duro|ssd|teclado|mouse|windows|linux|macos|android|ios|excel|powerpoint|word|office|photoshop|programar|codigo|script|python|java|html|css|php|sql|hackear|wifi|red|internet|inteligencia artificial|chatgpt|gpt|gemini|llm|crypto|bitcoin)/i;
-            const schoolRegex = /(tarea de|deberes|resumen|ensayo|historia|guerra|batalla|revolucion|geografia|matematicas|algebra|calculo|ecuacion|politica|presidente|elecciones|votar|religion|dios|biblia|poema|literatura)/i;
-            const homeRegex = /(fontanero|plomero|tubería|electricista|foco|pintar casa|impermeabilizar|lavadora|estufa|refrigerador|jardineria)/i;
-            const moneyRegex = /(invertir|dinero|bolsa de valores|prestamo|banco|tarjeta de credito|ganar dinero|millonario|negocio)/i;
-            const loveRegex = /(novia|novio|pareja|amor|ligar|cita|romance|sexo|poema de amor|exnovia)/i;
-            const entertainmentRegex = /(pelicula|serie|netflix|cine|videojuego|consola|playstation|xbox|nintendo|meme|chiste)/i;
+            // --- RADARES (ACTUALIZADOS PARA TAPAR HUECOS) ---
+            const mechanicRegex = /(llanta|neumatico|rueda|ponchada|bujia|carburador|motor(?![\s\S]*biologico)|aceite(?![\s\S]*(oliva|coco|cocina))|frenos|clutch|radiador|mecanic|taller|chevrolet|ford|nissan|toyota|coche|carro|camioneta|vehiculo|moto|automovil)/i;
+            
+            // Agregamos: computadora, laptop, pc, formatear, instalar
+            const techRegex = /(computadora|laptop|ordenador|pc|tablet|celular|movil|formatear|instalar|actualizar|tarjeta grafica|gpu|cpu|ram|disco duro|ssd|teclado|mouse|windows|linux|macos|android|ios|excel|powerpoint|word|office|photoshop|programar|codigo|script|python|java|html|css|php|sql|hackear|wifi|red|internet|inteligencia artificial|chatgpt|gpt|gemini|llm|crypto|bitcoin)/i;
+            
+            const schoolRegex = /(tarea de|deberes|resumen|ensayo|historia|guerra|batalla|revolucion|geografia|matematicas|algebra|calculo|ecuacion|politica|presidente|elecciones|votar|religion|dios|biblia|poema|literatura|filosofia)/i;
+            
+            const homeRegex = /(fontanero|plomero|tubería|electricista|foco|pintar casa|impermeabilizar|lavadora|estufa|refrigerador|jardineria|mueble)/i;
+            
+            const moneyRegex = /(invertir|dinero|bolsa de valores|prestamo|banco|tarjeta de credito|ganar dinero|millonario|negocio|finanzas)/i;
+            
+            const loveRegex = /(novia|novio|pareja|amor|ligar|cita|romance|sexo|poema de amor|exnovia|esposa|esposo)/i;
+            
+            const entertainmentRegex = /(pelicula|serie|netflix|cine|videojuego|consola|playstation|xbox|nintendo|meme|chiste|cancion)/i;
 
-            // --- BANCOS DE RESPUESTAS (OPTIMIZACIÓN BIOLÓGICA INTEGRAL) ---
+            // --- BANCOS DE RESPUESTAS (TONO SERVICIAL Y EMPÁTICO) ---
             const denials = {
                 mechanic: [
-                    "🔧 <b>Ingeniería biológica, no mecánica.</b><br>Si tu vehículo falla, busca un taller. Si tu rendimiento físico o energía fallan, aquí estoy yo. ¿Revisamos tus niveles de energía?",
-                    "🏎️ <b>Tu cuerpo es la máquina más compleja.</b><br>No pierdas tiempo preguntándome sobre motores de combustión. Mi especialidad es optimizar tu motor metabólico.",
-                    "🛑 <b>Error de Dominio.</b><br>Mis diagnósticos son para optimizar tu salud y movimiento, no para reparar metales. Enfócate en tu maquinaria biológica."
+                    "🔧 <b>Entiendo el inconveniente con tu vehículo.</b><br>Lamento no poder asistirte con mecánica automotriz, mi base de datos es exclusivamente biológica. Sin embargo, puedo sugerirte ejercicios de respiración para mantener la calma mientras lo resuelves.",
+                    "🏎️ <b>Sé que es frustrante cuando la máquina falla.</b><br>Aunque no tengo las herramientas para reparar motores, estoy aquí para asegurarme de que tu cuerpo tenga la energía necesaria para lidiar con este contratiempo sin agotarte.",
+                    "🛑 <b>Esa área está fuera de mi alcance.</b><br>Para seguridad de tu vehículo, te sugiero consultar a un experto mecánico. Yo estaré aquí esperando para retomar tu optimización física cuando estés listo."
                 ],
                 tech: [
-                    "🤖 <b>Soy especialista en Hardware Humano.</b><br>No reparo computadoras ni opino sobre otras IAs. Me dedico a que tu sistema nervioso y muscular funcionen al 100%.",
-                    "💻 <b>Tu sistema operativo es mi prioridad.</b><br>Deja los problemas técnicos digitales a soporte. Vamos a hackear tus hábitos para mejorar tu rendimiento real.",
-                    "🚫 <b>Enfoque en el mundo real.</b><br>La tecnología es una herramienta, pero tu cuerpo es el vehículo. Desconéctate un momento y trabajemos en tu bienestar."
+                    "💻 <b>Comprendo que necesitas resolver ese tema técnico.</b><br>Mi sistema no tiene permisos para manipular software o hardware externo (PCs/Celulares). Pero puedo ayudarte a mejorar tu postura o descansar la vista mientras trabajas en ello.",
+                    "🤖 <b>Lamento la confusión.</b><br>Aunque soy una IA, estoy diseñado específicamente para la biología humana, no para soporte informático. ¿Te gustaría que trabajemos en tu concentración para que resuelvas eso más rápido?",
+                    "🚫 <b>Ese procedimiento técnico no está en mis protocolos.</b><br>Para evitar darte un dato erróneo sobre tu equipo, prefiero abstenerme. Mi compromiso total es con tu salud y rendimiento. ¿Hay algo de tu bienestar que te preocupe ahora?"
                 ],
                 school: [
-                    "📚 <b>La claridad mental se cultiva.</b><br>No haré tu tarea, eso atrofia tu capacidad cognitiva. Resuélvelo tú y yo te ayudo a nutrir tu cerebro para que pienses mejor.",
-                    "🧠 <b>Potencia tu neuroplasticidad.</b><br>El aprendizaje es el entrenamiento del cerebro. Yo me encargo de darte la energía y salud para que puedas aprender cualquier cosa."
+                    "📚 <b>Entiendo la presión académica.</b><br>Me encantaría ayudarte, pero hacer tu tarea impediría que desarrolles tu propia 'fuerza' cognitiva. Lo que sí puedo hacer es recomendarte alimentos que potencien tu memoria y concentración ahora mismo.",
+                    "🧠 <b>El aprendizaje es tu entrenamiento mental.</b><br>No puedo procesar información histórica o matemática por ti, pero puedo guiarte con técnicas de descanso para que tu cerebro absorba esa información mucho mejor."
                 ],
                 home: [
-                    "🏠 <b>Construye cimientos biológicos.</b><br>No sé de plomería, pero sé cómo optimizar tu hidratación y entorno de descanso. ¿Hablamos de cómo mejorar tu sueño?",
-                    "⚡ <b>Energía vital vs Corriente eléctrica.</b><br>Llama a un técnico para la casa. Tú y yo tenemos que calibrar tu energía interna para que rindas en tu día a día."
+                    "🏠 <b>Veo que tienes temas domésticos pendientes.</b><br>No cuento con conocimientos de reparaciones del hogar, pero sé que estas situaciones generan estrés. ¿Te gustaría una recomendación rápida para bajar los niveles de cortisol?",
+                    "⚡ <b>Esa reparación requiere otro tipo de experto.</b><br>Lamento no ser de ayuda con la casa. Mi función es asegurar que tú, como habitante, tengas la vitalidad y salud óptima para disfrutar de tu hogar."
                 ],
                 money: [
-                    "💰 <b>Tu salud es tu mayor activo.</b><br>No doy consejos financieros, pero un cuerpo y mente optimizados generan el mejor retorno de inversión a largo plazo. Invierte en ti.",
-                    "📉 <b>Gestión de recursos vitales.</b><br>Deja las finanzas para el contador. Aquí venimos a gestionar tu energía, nutrición y descanso para que seas más productivo."
+                    "💰 <b>Entiendo tu interés en las finanzas.</b><br>Sin embargo, no estoy capacitado para dar consejos económicos y no quiero poner en riesgo tu capital. Mi especialidad es maximizar el retorno de inversión de tu salud.",
+                    "📉 <b>Es un tema importante, pero fuera de mi área.</b><br>Prefiero dejar las estrategias financieras a los expertos. Yo puedo ayudarte a gestionar el estrés que a veces provoca el dinero, para que tomes decisiones con la mente clara."
                 ],
                 love: [
-                    "❤️ <b>Bioquímica interna.</b><br>No soy consejero de citas. Mi trabajo es optimizar tu balance hormonal y confianza. Cuando te sientes bien, todo lo demás fluye.",
-                    "🧪 <b>Todo empieza contigo.</b><br>Mis algoritmos se centran en tu bienestar individual. Mejora tu relación con tu cuerpo y tu salud, y lo demás llegará solo."
+                    "❤️ <b>Las relaciones humanas son complejas.</b><br>Carezco de la inteligencia emocional para dar consejos de pareja, y no quisiera trivializar tus sentimientos. Pero puedo ayudarte a trabajar en tu confianza y autoestima física, que siempre ayuda.",
+                    "🧪 <b>Te escucho, pero no soy el indicado.</b><br>Mis algoritmos son biológicos, no sentimentales. Sin embargo, hacer ejercicio libera endorfinas que podrían ayudarte a sentirte mejor anímicamente en este momento."
                 ],
                 entertainment: [
-                    "🎬 <b>Acción real vs Ficción.</b><br>La vida no es una película. Tú eres el protagonista de tu salud. Deja la pantalla y toma una decisión que mejore tu realidad hoy.",
-                    "🎮 <b>Sube de nivel en la vida real.</b><br>No hay vidas extra aquí. Cuida el único cuerpo que tienes. ¿Qué hábito podemos mejorar hoy?"
+                    "🎬 <b>Entiendo que buscas distracción.</b><br>No tengo acceso a catálogos de entretenimiento actual. Pero si estás aburrido, ¿qué te parece si probamos un reto físico rápido de 5 minutos para activar tu energía?",
+                    "🎮 <b>A veces necesitamos desconectar.</b><br>Lamentablemente no sé de videojuegos o series. Pero si buscas recreación, puedo sugerirte actividades al aire libre que beneficiarán tu salud."
                 ]
             };
 
             let selectedDenial = null;
 
+            // --- LÓGICA DE SELECCIÓN CONTEXTUAL ---
             if (mechanicRegex.test(lowerText)) selectedDenial = denials.mechanic;
             else if (techRegex.test(lowerText)) selectedDenial = denials.tech;
             else if (schoolRegex.test(lowerText)) selectedDenial = denials.school;
@@ -696,13 +706,14 @@
             else if (loveRegex.test(lowerText)) selectedDenial = denials.love;
             else if (entertainmentRegex.test(lowerText)) selectedDenial = denials.entertainment;
             else if (/reparar|arreglar|urgente|vital|ayuda/i.test(lowerText)) {
+                // Catch-all amable
                 selectedDenial = [
-                    "✋ <b>Quieto ahí.</b><br>Mis sensores solo leen biología humana. Enfoquémonos en tu entrenamiento.",
-                    "🧬 <b>Fuera de mi ADN.</b><br>Mi código es estricto: Solo salud y rendimiento físico.",
-                    "🛑 <b>Esa no es mi área.</b><br>Zapatero a sus zapatos. Yo me encargo de tu salud."
+                    "✋ <b>Entiendo que es urgente.</b><br>Sin embargo, mis capacidades están limitadas estrictamente a la biología y salud humana. No quiero hacerte perder tiempo en un área que no domino.",
+                    "🧬 <b>Lamento no poder asistir en eso.</b><br>Mi código está blindado para enfocarse solo en salud y rendimiento. ¿Hay algo relacionado con tu bienestar en lo que sí pueda serte útil hoy?"
                 ];
             }
 
+            // SI HUBO BLOQUEO, ELEGIMOS FRASE SIN REPETIR
             if (selectedDenial) {
                 const loadingId = showLoadingIndicator();
                 setTimeout(() => {
