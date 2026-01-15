@@ -639,42 +639,94 @@
             const oldSuggestions = document.querySelector('.suggestions-container');
             if(oldSuggestions) oldSuggestions.remove();
 
-            // 2. 🛡️ CORTAFUEGOS DE DOMINIO V3.0 (Regex Client-Side)
+            // 2. 🛡️ CORTAFUEGOS CONTEXTUAL V4.1 (COBERTURA TOTAL)
             const lowerText = text.toLowerCase();
             
-            // 🔥 RADAR DE ALTA SENSIBILIDAD
-            // Este Regex bloquea palabras clave TÉCNICAS y usa "Lookaheads" para permitir excepciones válidas.
-            // Ejemplo: Bloquea "reparar" a menos que digas "reparar musculo".
-            const firewallRegex = /(llanta|neumatico|rueda|ponchada|bujia|carburador|motor(?!.*biologico)|aceite(?!.*oliva|coco|cocina)|frenos|clutch|radiador|mecanic|taller|chevrolet|ford|nissan|toyota|coche|carro|camioneta|vehiculo|moto|tarjeta grafica|gpu|cpu|ram|disco duro|ssd|teclado|mouse|windows|linux|macos|android|ios|excel|powerpoint|word|office|photoshop|programar|codigo|script|python|java|html|css|php|sql|tarea de|deberes|resumen|ensayo|historia|guerra|batalla|revolucion|geografia|matematicas|algebra|calculo|ecuacion|politica|presidente|elecciones|votar|religion|dios|biblia|fontanero|plomero|tubería|electricista|reparar(?!.*(cuerpo|musculo|tejido|sueño|metabolismo))|arreglar(?!.*(sueño|rutina|dieta))|cambiar(?!.*(rutina|habito|ejercicio|plan)))/i;
+            // --- RADARES ESPECÍFICOS ---
+            const mechanicRegex = /(llanta|neumatico|rueda|ponchada|bujia|carburador|motor(?![\s\S]*biologico)|aceite(?![\s\S]*(oliva|coco|cocina))|frenos|clutch|radiador|mecanic|taller|chevrolet|ford|nissan|toyota|coche|carro|camioneta|vehiculo|moto)/i;
+            
+            // Agregamos IA, Chatgpt, Crypto y Redes
+            const techRegex = /(tarjeta grafica|gpu|cpu|ram|disco duro|ssd|teclado|mouse|windows|linux|macos|android|ios|excel|powerpoint|word|office|photoshop|programar|codigo|script|python|java|html|css|php|sql|hackear|wifi|red|internet|inteligencia artificial|chatgpt|gpt|gemini|llm|crypto|bitcoin)/i;
+            
+            const schoolRegex = /(tarea de|deberes|resumen|ensayo|historia|guerra|batalla|revolucion|geografia|matematicas|algebra|calculo|ecuacion|politica|presidente|elecciones|votar|religion|dios|biblia|poema|literatura)/i;
+            
+            const homeRegex = /(fontanero|plomero|tubería|electricista|foco|pintar casa|impermeabilizar|lavadora|estufa|refrigerador|jardineria)/i;
 
-            // Verificamos si el texto activa el firewall
-            if (firewallRegex.test(lowerText)) {
+            // Nuevas categorías para cubrir "otros rubros"
+            const moneyRegex = /(invertir|dinero|bolsa de valores|prestamo|banco|tarjeta de credito|ganar dinero|millonario|negocio)/i;
+            const loveRegex = /(novia|novio|pareja|amor|ligar|cita|romance|sexo|poema de amor|exnovia)/i;
+            const entertainmentRegex = /(pelicula|serie|netflix|cine|videojuego|consola|playstation|xbox|nintendo|meme|chiste)/i;
+
+            // --- BANCOS DE RESPUESTAS ---
+            const denials = {
+                mechanic: [
+                    "🔧 <b>Soy mecánico de músculos, no de metal.</b><br>Si tu coche falla, llama a la grúa. Si tu cuerpo falla, aquí estoy yo. ¿Volvemos al entrenamiento?",
+                    "🏎️ <b>Esa máquina tiene repuestos, tú no.</b><br>No pierdas tiempo preguntándome sobre motores. Mi especialidad es tu motor biológico.",
+                    "🛑 <b>Error de Taller.</b><br>Mis diagnósticos son para rodillas, no para carburadores. Llama a un mecánico real."
+                ],
+                tech: [
+                    "🤖 <b>Entre IAs no nos pisamos la manguera.</b><br>No opino sobre otras IAs ni arreglo impresoras. Yo construyo físicos estéticos. ¿Te interesa?",
+                    "💻 <b>Mi CPU es para tu cuerpo.</b><br>No escribo código ni analizo criptomonedas. Hackeo tu metabolismo. ¿Seguimos con el plan?",
+                    "🚫 <b>Acceso a Módulo IT denegado.</b><br>Soy tu coach, no tu soporte técnico. Deja la pantalla y agarra una pesa."
+                ],
+                school: [
+                    "📚 <b>El cerebro se entrena estudiando.</b><br>No voy a hacer tu tarea. Eso sería como levantar las pesas por ti: tú no ganarías el músculo mental.",
+                    "🧠 <b>Ahorra esa energía para el gym.</b><br>La historia es importante, pero yo me encargo de tu futuro físico. Haz tu tarea y luego entrenamos."
+                ],
+                home: [
+                    "🏠 <b>Zapatero a sus zapatos.</b><br>No sé arreglar fugas de agua, pero sé cómo evitar que retengas líquidos. ¿Hablamos de eso?",
+                    "⚡ <b>Cuidado con la corriente.</b><br>No soy electricista. Soy experto en la energía que mueve tus músculos. Enfoquémonos en eso."
+                ],
+                money: [
+                    "💰 <b>La mejor inversión eres tú.</b><br>No doy consejos financieros, pero un cuerpo sano es el activo más valioso que tienes. Trabajemos en eso.",
+                    "📉 <b>No analizo el mercado, analizo tu grasa.</b><br>Deja las finanzas para el contador. Aquí venimos a generar ganancias musculares."
+                ],
+                love: [
+                    "💔 <b>No soy Cupido, soy tu Entrenador.</b><br>Si quieres atraer pareja, ponte en forma y mejora tu confianza. En eso sí puedo ayudarte.",
+                    "🧪 <b>Eso es oxitocina, no testosterona.</b><br>Mis algoritmos no entienden de romance, solo de rendimiento físico. Canaliza esa pasión en las pesas."
+                ],
+                entertainment: [
+                    "🎬 <b>Corta la escena.</b><br>No soy crítico de cine ni tengo Netflix. Soy el director de tu transformación física. ¡Acción!",
+                    "🎮 <b>Game Over a la distracción.</b><br>La vida no es un videojuego, no tienes vidas extra. Cuida el cuerpo que tienes ahora."
+                ]
+            };
+
+            let selectedDenial = null;
+
+            // --- LÓGICA DE SELECCIÓN CONTEXTUAL ---
+            if (mechanicRegex.test(lowerText)) selectedDenial = denials.mechanic;
+            else if (techRegex.test(lowerText)) selectedDenial = denials.tech;
+            else if (schoolRegex.test(lowerText)) selectedDenial = denials.school;
+            else if (homeRegex.test(lowerText)) selectedDenial = denials.home;
+            else if (moneyRegex.test(lowerText)) selectedDenial = denials.money;
+            else if (loveRegex.test(lowerText)) selectedDenial = denials.love;
+            else if (entertainmentRegex.test(lowerText)) selectedDenial = denials.entertainment;
+            else if (/reparar|arreglar|urgente|vital|ayuda/i.test(lowerText)) {
+                selectedDenial = [
+                    "✋ <b>Quieto ahí.</b><br>Mis sensores solo leen biología humana. Enfoquémonos en tu entrenamiento.",
+                    "🧬 <b>Fuera de mi ADN.</b><br>Mi código es estricto: Solo salud y rendimiento físico.",
+                    "🛑 <b>Esa no es mi área.</b><br>Zapatero a sus zapatos. Yo me encargo de tu salud."
+                ];
+            }
+
+            // SI HUBO BLOQUEO, ELEGIMOS FRASE SIN REPETIR
+            if (selectedDenial) {
                 const loadingId = showLoadingIndicator();
-                
                 setTimeout(() => {
                     removeLoadingIndicator(loadingId);
                     
-                    // --- 🎨 MEJORA: RESPUESTAS DINÁMICAS CON PERSONALIDAD EVYON ---
-                    // Aquí definimos varias opciones para que no suene a robot repetitivo
-                    const denialOptions = [
-                        "🧬 <b>Fuera de mi ADN.</b><br><br>Mi código está diseñado estrictamente para optimizar organismos biológicos, no mecánicos ni digitales.<br>Si fuera tu rodilla la que falla, ya tendrías la solución. ¿Regresamos al foco físico?",
-                        
-                        "🛑 <b>Esa no es mi área, Titán.</b><br><br>Soy experto en biohacking y entrenamiento. Si intento resolver tareas escolares o arreglar motores, estaría malgastando recursos destinados a tu evolución física.<br>Zapatero a sus zapatos. ¿En qué te ayudo con tu cuerpo hoy?",
-                        
-                        "🧠 <b>Ahorra esa energía mental.</b><br><br>Detecto estrés por un tema externo (mecánico/técnico). Yo me encargo de tu salud para que tú tengas la claridad de resolver eso con un experto humano en esa área.<br>¿Seguimos con el plan nutricional?",
-                        
-                        "✋ <b>Quieto ahí.</b><br><br>Entiendo la urgencia, pero mis sensores solo leen biología humana. No tengo los drivers para ingeniería mecánica o historia.<br>Concéntrate en lo que sí podemos controlar: Tu entrenamiento de hoy."
-                    ];
-
-                    // Elegimos una respuesta al azar para que se sienta "vivo"
-                    const denialMsg = denialOptions[Math.floor(Math.random() * denialOptions.length)];
-                    // -------------------------------------------------------------
+                    let randomIndex;
+                    do {
+                        randomIndex = Math.floor(Math.random() * selectedDenial.length);
+                    } while (selectedDenial.length > 1 && randomIndex === lastDenialIndex);
                     
-                    appendMessage("EVYON IA", denialMsg, "bot", true); 
-                    saveToHistory("assistant", denialMsg);
-                }, 800); // Le bajé un poco el tiempo para que sea más ágil
-                
-                return; // 🛑 CORTA LA EJECUCIÓN AQUÍ.
+                    lastDenialIndex = randomIndex;
+                    const msg = selectedDenial[randomIndex];
+
+                    appendMessage("EVYON IA", msg, "bot", true); 
+                    saveToHistory("assistant", msg);
+                }, 800);
+                return; 
             }
 
             // 3. Flujo Normal (Solo si pasó el cortafuegos)
