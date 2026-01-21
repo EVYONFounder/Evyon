@@ -978,27 +978,27 @@
             row.className = "message-row bot";
             row.id = id;
             
-            // 1. Inyectamos los estilos de animación si no existen
-            if (!document.getElementById('anim-loading-vital')) {
+            // 1. Inyectamos la animación Minimalista
+            if (!document.getElementById('anim-loading-minimal')) {
                 let style = document.createElement('style');
-                style.id = 'anim-loading-vital';
+                style.id = 'anim-loading-minimal';
                 style.innerHTML = `
                     @keyframes halo-spin {
                         0% { transform: rotate(0deg); opacity: 0.5; }
                         50% { opacity: 1; }
                         100% { transform: rotate(360deg); opacity: 0.5; }
                     }
-                    /* NUEVA ANIMACIÓN V2: Respiración de Luz (Sin temblores) */
-                    @keyframes bio-glow {
-                        0% { color: #94a3b8; text-shadow: none; opacity: 0.7; }
-                        50% { color: #3cd186; text-shadow: 0 0 15px rgba(60, 209, 134, 0.5); opacity: 1; }
-                        100% { color: #94a3b8; text-shadow: none; opacity: 0.7; }
+                    /* NUEVA ANIMACIÓN: Pulso Blanco (Elegante) */
+                    @keyframes pure-pulse {
+                        0% { color: #64748b; opacity: 0.5; }
+                        50% { color: #ffffff; opacity: 1; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
+                        100% { color: #64748b; opacity: 0.5; }
                     }
                 `;
                 document.head.appendChild(style);
             }
 
-            // 2. Creamos el HTML
+            // 2. HTML Limpio
             row.innerHTML = `
                 <div class="avatar" style="
                     width: 32px; height: 32px; 
@@ -1010,12 +1010,14 @@
                     margin-right: 10px;
                 "></div>
                 <div class="message-bubble" style="
-                    background: rgba(255,255,255,0.05); 
+                    background: rgba(255,255,255,0.03); /* Fondo casi invisible */
                     border: 1px solid rgba(255,255,255,0.05);
-                    font-style: italic;
+                    font-style: normal; /* Quitamos itálica para que se vea más moderno */
                     font-weight: 500;
-                    /* AQUÍ ESTÁ EL CAMBIO: Suave y lento */
-                    animation: bio-glow 2s infinite ease-in-out;
+                    letter-spacing: 0.5px;
+                    font-size: 14px;
+                    /* AQUÍ ESTÁ EL CAMBIO */
+                    animation: pure-pulse 2s infinite ease-in-out;
                 ">Analizando...</div>
             `;
 
