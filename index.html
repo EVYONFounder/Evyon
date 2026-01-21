@@ -988,17 +988,17 @@
                         50% { opacity: 1; }
                         100% { transform: rotate(360deg); opacity: 0.5; }
                     }
-                    /* NUEVA ANIMACIÓN: Latido de Texto */
-                    @keyframes bio-pulse {
-                        0% { color: #8899a6; opacity: 0.7; letter-spacing: 0px; }
-                        50% { color: #3cd186; opacity: 1; letter-spacing: 0.5px; text-shadow: 0 0 8px rgba(60, 209, 134, 0.4); }
-                        100% { color: #8899a6; opacity: 0.7; letter-spacing: 0px; }
+                    /* NUEVA ANIMACIÓN V2: Respiración de Luz (Sin temblores) */
+                    @keyframes bio-glow {
+                        0% { color: #94a3b8; text-shadow: none; opacity: 0.7; }
+                        50% { color: #3cd186; text-shadow: 0 0 15px rgba(60, 209, 134, 0.5); opacity: 1; }
+                        100% { color: #94a3b8; text-shadow: none; opacity: 0.7; }
                     }
                 `;
                 document.head.appendChild(style);
             }
 
-            // 2. Creamos el HTML con el efecto aplicado
+            // 2. Creamos el HTML
             row.innerHTML = `
                 <div class="avatar" style="
                     width: 32px; height: 32px; 
@@ -1006,16 +1006,16 @@
                     border: 2px solid #3cd186; 
                     background: transparent; 
                     box-shadow: 0 0 10px #3cd186;
-                    animation: halo-spin 1.5s linear infinite; /* Un poco más lento y elegante */
+                    animation: halo-spin 1.5s linear infinite;
                     margin-right: 10px;
                 "></div>
                 <div class="message-bubble" style="
                     background: rgba(255,255,255,0.05); 
                     border: 1px solid rgba(255,255,255,0.05);
                     font-style: italic;
-                    font-weight: 600;
-                    /* AQUÍ ESTÁ LA MAGIA: */
-                    animation: bio-pulse 1.5s infinite ease-in-out;
+                    font-weight: 500;
+                    /* AQUÍ ESTÁ EL CAMBIO: Suave y lento */
+                    animation: bio-glow 2s infinite ease-in-out;
                 ">Analizando...</div>
             `;
 
