@@ -977,39 +977,48 @@
             let row = document.createElement("div");
             row.className = "message-row bot";
             row.id = id;
-            // --- NUEVO INDICADOR DE CARGA (Estilo Halo) ---
-    row.innerHTML = `
-        <div class="avatar" style="
-            width: 32px; height: 32px; 
-            border-radius: 50%; 
-            border: 2px solid #3cd186; 
-            background: transparent; 
-            box-shadow: 0 0 10px #3cd186;
-            animation: halo-spin 1s linear infinite;
-            margin-right: 10px;
-        "></div>
-        <div class="message-bubble" style="
-            color: #8899a6; 
-            font-style: italic; 
-            background: rgba(255,255,255,0.05); 
-            border: 1px solid rgba(255,255,255,0.05);
-        ">Procesando...</div>
-    `;
-
-    // Inyectamos la animación de rotación si no existe
-    if (!document.getElementById('anim-halo-spin')) {
-        let style = document.createElement('style');
-        style.id = 'anim-halo-spin';
-        style.innerHTML = `
-            @keyframes halo-spin {
-                0% { transform: rotate(0deg); opacity: 0.5; }
-                50% { opacity: 1; }
-                100% { transform: rotate(360deg); opacity: 0.5; }
+            
+            // 1. Inyectamos los estilos de animación si no existen
+            if (!document.getElementById('anim-loading-vital')) {
+                let style = document.createElement('style');
+                style.id = 'anim-loading-vital';
+                style.innerHTML = `
+                    @keyframes halo-spin {
+                        0% { transform: rotate(0deg); opacity: 0.5; }
+                        50% { opacity: 1; }
+                        100% { transform: rotate(360deg); opacity: 0.5; }
+                    }
+                    /* NUEVA ANIMACIÓN: Latido de Texto */
+                    @keyframes bio-pulse {
+                        0% { color: #8899a6; opacity: 0.7; letter-spacing: 0px; }
+                        50% { color: #3cd186; opacity: 1; letter-spacing: 0.5px; text-shadow: 0 0 8px rgba(60, 209, 134, 0.4); }
+                        100% { color: #8899a6; opacity: 0.7; letter-spacing: 0px; }
+                    }
+                `;
+                document.head.appendChild(style);
             }
-        `;
-        document.head.appendChild(style);
-    }
-    // --- FIN ---
+
+            // 2. Creamos el HTML con el efecto aplicado
+            row.innerHTML = `
+                <div class="avatar" style="
+                    width: 32px; height: 32px; 
+                    border-radius: 50%; 
+                    border: 2px solid #3cd186; 
+                    background: transparent; 
+                    box-shadow: 0 0 10px #3cd186;
+                    animation: halo-spin 1.5s linear infinite; /* Un poco más lento y elegante */
+                    margin-right: 10px;
+                "></div>
+                <div class="message-bubble" style="
+                    background: rgba(255,255,255,0.05); 
+                    border: 1px solid rgba(255,255,255,0.05);
+                    font-style: italic;
+                    font-weight: 600;
+                    /* AQUÍ ESTÁ LA MAGIA: */
+                    animation: bio-pulse 1.5s infinite ease-in-out;
+                ">Analizando...</div>
+            `;
+
             box.appendChild(row);
             box.scrollTop = box.scrollHeight;
             return id;
