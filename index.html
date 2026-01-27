@@ -200,19 +200,20 @@
             border-radius: 18px;
             max-width: 85%;
             font-size: 15px;
-            line-height: 1.4;
+            line-height: 1.5; /* Un pelín más de aire para lectura cómoda */
             position: relative;
-            /* box-shadow: 0 2px 5px rgba(0,0,0,0.1);  <-- SI TIENES ESTO, BORRALO O COMENTALO */
             
-            width: fit-content; 
-            word-wrap: break-word;
-
-            /* 🧱 LA BARRERA INVISIBLE 🧱 */
-            /* Esto obliga al navegador a cortar el renderizado EXACTAMENTE aquí */
+            /* --- 🔧 LA CORRECCIÓN DEL ESPACIO --- */
+            width: fit-content;      /* La caja se ajusta al contenido */
+            word-wrap: break-word;   /* Rompe palabras largas si es necesario */
+            
+            /* Magia moderna: Equilibra las líneas para evitar huecos feos */
+            text-wrap: pretty;       
+            text-align: left;        /* Asegura el orden visual */
+            
+            /* --- RENDERIZADO (No tocar) --- */
             outline: 1px solid transparent;
             background-clip: padding-box;
-            
-            /* Aseguramos que la burbuja tenga su propia capa */
             transform: translateZ(0);
         }
 
