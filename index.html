@@ -200,18 +200,17 @@
             border-radius: 18px;
             max-width: 85%;
             font-size: 15px;
-            line-height: 1.5; /* Un pelín más de aire para lectura cómoda */
+            line-height: 1.5;
             position: relative;
             
-            /* --- 🔧 LA CORRECCIÓN DEL ESPACIO --- */
-            width: fit-content;      /* La caja se ajusta al contenido */
-            word-wrap: break-word;   /* Rompe palabras largas si es necesario */
+            /* --- 🛡️ MODO CLÁSICO (SOLUCIÓN COMPATIBLE) --- */
+            /* Quitamos 'fit-content' y 'text-wrap' */
+            /* Dejamos que Flexbox decida el ancho natural */
             
-            /* Magia moderna: Equilibra las líneas para evitar huecos feos */
-            text-wrap: balance;       
-            text-align: left;        /* Asegura el orden visual */
+            word-break: break-word; /* Rompe palabras largas si es necesario */
+            text-align: left;
             
-            /* --- RENDERIZADO (No tocar) --- */
+            /* Renderizado */
             outline: 1px solid transparent;
             background-clip: padding-box;
             transform: translateZ(0);
