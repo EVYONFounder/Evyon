@@ -375,6 +375,13 @@
         .btn-cancel { background: rgba(255,255,255,0.1); color: #fff; }
         .btn-confirm { background: #3cd186; color: #000; box-shadow: 0 4px 15px rgba(60, 209, 134, 0.2); }
     </style>
+    <script type="text/javascript">
+      (function(f,b){if(!b.__SV){var e,g,i,h;window.mixpanel=b;b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable time_event track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config reset people.set people.set_once people.unset people.increment people.append people.union people.track_charge people.clear_charges people.delete_user".split(" ");
+      for(h=0;h<i.length;h++)f(c,i[h]);b._i.push([a,e,d])};b.__SV=1.2;e=f.createElement("script");e.type="text/javascript";e.async=!0;e.src="https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";g=f.getElementsByTagName("script")[0];g.parentNode.insertBefore(e,g)}})(document,window.mixpanel||[]);
+
+      // INICIALIZACIÓN CON TU TOKEN REAL
+      mixpanel.init("8995bebeebc659f06bc593bb3c1dc3f7", {debug: true, track_pageview: true, persistence: 'localStorage'});
+    </script>
 </head>
 
 <body>
@@ -690,6 +697,14 @@
             let input = document.getElementById("userInput");
             let text = manualText || input.value.trim();
             if (!text) return;
+            // --- RASTREO EN TIEMPO REAL (MIXPANEL) ---
+            if (typeof mixpanel !== 'undefined') {
+                mixpanel.track("Mensaje Enviado", {
+                    "Usuario": currentUserData ? currentUserData.name : "Desconocido",
+                    "Longitud": text.length,
+                    "Fecha": new Date().toISOString()
+                });
+            }
 
             // 1. Mostrar mensaje del usuario
             appendMessage("Tú", text, "user", false);
