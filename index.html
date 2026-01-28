@@ -420,14 +420,33 @@
 
         /* --- ESTILOS DEL MODO NEURAL (EVYON OS INTEGRADO) --- */
         
-        /* 1. El Gatillo (Icono de Onda en el Input) */
+        /* 1. El Gatillo (Icono de Onda en el Input) - CORREGIDO */
         .voice-trigger-btn {
-            background: transparent; border: none; color: #64748b;
-            cursor: pointer; padding: 0 8px; transition: all 0.3s;
-            display: flex; align-items: center; opacity: 0.8;
-            margin-right: 5px; /* Espacio con el texto */
+            background: transparent; 
+            border: none; 
+            color: #64748b;
+            cursor: pointer; 
+            transition: all 0.3s;
+            opacity: 0.8;
+            margin-right: 5px;
+            
+            /* --- AJUSTE DE ALINEACIÓN --- */
+            display: flex; 
+            align-items: center; 
+            justify-content: center; /* Centra el icono dentro de su caja */
+            
+            /* FORZAMOS LA ALTURA PARA IGUALAR AL INPUT */
+            height: 40px; 
+            width: 40px;  /* Lo hacemos cuadrado para mejor zona de toque */
+            border-radius: 12px; /* Para que el hover se vea bonito */
         }
-        .voice-trigger-btn:hover { color: #3cd186; transform: scale(1.1); opacity: 1; }
+        
+        .voice-trigger-btn:hover { 
+            color: #3cd186; 
+            background: rgba(255, 255, 255, 0.05); /* Sutil fondo al tocar */
+            transform: scale(1.05); 
+            opacity: 1; 
+        }
 
         /* 2. Capa Principal (Cubre toda la pantalla) */
         #neural-layer {
