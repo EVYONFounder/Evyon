@@ -418,105 +418,98 @@
         .btn-cancel { background: rgba(255,255,255,0.1); color: #fff; }
         .btn-confirm { background: #3cd186; color: #000; box-shadow: 0 4px 15px rgba(60, 209, 134, 0.2); }
 
-        /* --- ESTILOS DEL MODO NEURAL (EVYON OS INTEGRADO) --- */
+        /* --- ESTILOS DEL MODO NEURAL 2.0 (Bio-Glow Premium) --- */
         
-        /* 1. El Gatillo (Icono de Onda en el Input) - CORREGIDO */
+        /* 1. Gatillo (Sin cambios, ya está perfecto) */
         .voice-trigger-btn {
-            background: transparent; 
-            border: none; 
-            color: #64748b;
-            cursor: pointer; 
-            transition: all 0.3s;
-            opacity: 0.8;
-            margin-right: 5px;
-            
-            /* --- AJUSTE DE ALINEACIÓN --- */
-            display: flex; 
-            align-items: center; 
-            justify-content: center; /* Centra el icono dentro de su caja */
-            
-            /* FORZAMOS LA ALTURA PARA IGUALAR AL INPUT */
-            height: 40px; 
-            width: 40px;  /* Lo hacemos cuadrado para mejor zona de toque */
-            border-radius: 12px; /* Para que el hover se vea bonito */
+            background: transparent; border: none; color: #64748b;
+            cursor: pointer; transition: all 0.3s; opacity: 0.8; margin-right: 5px;
+            display: flex; align-items: center; justify-content: center;
+            height: 40px; width: 40px; border-radius: 12px;
         }
-        
         .voice-trigger-btn:hover { 
-            color: #3cd186; 
-            background: rgba(255, 255, 255, 0.05); /* Sutil fondo al tocar */
-            transform: scale(1.05); 
-            opacity: 1; 
+            color: #3cd186; background: rgba(255, 255, 255, 0.05);
+            transform: scale(1.05); opacity: 1; 
         }
 
-        /* 2. Capa Principal (Cubre toda la pantalla) */
+        /* 2. Capa Principal con EFECTO APPLE INTELLIGENCE (EVYON VERSION) */
         #neural-layer {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 9999; transition: opacity 0.5s ease;
-            font-family: 'Courier New', Courier, monospace; /* Tipografía Técnica */
+            z-index: 9999; transition: opacity 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+            
+            /* Fuente Moderna (Heredada del sistema, no máquina de escribir) */
+            font-family: 'Inter', sans-serif; 
+            
+            /* EL BIO-GLOW: Sombra interna que respira */
+            box-shadow: inset 0 0 100px rgba(0,0,0,0.9); /* Base oscura */
+            animation: bio-edge-pulse 4s infinite ease-in-out;
+        }
+
+        /* Animación del Borde (Respira en Verde) */
+        @keyframes bio-edge-pulse {
+            0%, 100% { box-shadow: inset 0 0 60px rgba(60, 209, 134, 0.05); }
+            50% { box-shadow: inset 0 0 120px rgba(60, 209, 134, 0.25); border: 1px solid rgba(60, 209, 134, 0.1); }
         }
 
         .neural-bg {
             position: absolute; width: 100%; height: 100%;
-            background: radial-gradient(circle at center, #050505 0%, #000 90%);
+            /* Fondo más profundo y limpio */
+            background: radial-gradient(circle at center, #050a07 0%, #000000 80%);
         }
 
-        /* 3. Canvas (El Motor de Partículas) */
         #glassCore {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 1; filter: contrast(1.3) brightness(1.2);
+            z-index: 1; filter: contrast(1.1) brightness(1.2);
         }
 
-        /* 4. HUD (Las Esquinas Decorativas) */
-        .hud-overlay { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            pointer-events: none; z-index: 2; padding: 20px;
-        }
-        .corner { position: absolute; width: 40px; height: 40px; border: 1px solid rgba(60, 209, 134, 0.2); transition: all 0.5s; }
-        .tl { top: 20px; left: 20px; border-right: none; border-bottom: none; }
-        .tr { top: 20px; right: 20px; border-left: none; border-bottom: none; }
-        .bl { bottom: 20px; left: 20px; border-right: none; border-top: none; }
-        .br { bottom: 20px; right: 20px; border-left: none; border-top: none; }
-
-        /* Estados Reactivos del HUD */
-        .hud-listening .corner { border-color: #fff; box-shadow: 0 0 20px rgba(255,255,255,0.15); }
-        .hud-speaking .corner { border-color: #3cd186; box-shadow: 0 0 20px rgba(60, 209, 134, 0.3); }
-
-        /* 5. Interfaz Central */
+        /* 3. Interfaz Minimalista (Sin bordes, todo flotando) */
         .os-interface {
             position: absolute; width: 100%; height: 100%; z-index: 10;
             display: flex; flex-direction: column; justify-content: space-between; align-items: center;
-            padding: 100px 0 60px 0; pointer-events: none;
+            padding: 120px 0 80px 0; pointer-events: none;
         }
 
         .os-status {
-            color: rgba(255,255,255,0.5); letter-spacing: 6px; font-weight: 700; font-size: 14px;
-            text-shadow: 0 0 10px rgba(0,0,0,0.8);
+            color: rgba(255,255,255,0.6); 
+            font-size: 12px; font-weight: 500; letter-spacing: 2px;
+            text-transform: uppercase;
+            /* Efecto vidrio sutil en el texto */
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 16px; border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        /* 6. Botón de Desconexión (Estilo Terminal) */
+        /* 4. Botón "Pill" (Cápsula de Vidrio) */
         .disconnect-btn {
             pointer-events: auto;
-            background: rgba(10, 10, 10, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #ff6b6b; /* Rojo suave de alerta */
-            font-family: monospace;
-            font-size: 13px; letter-spacing: 2px; font-weight: 700;
-            padding: 14px 28px;
-            border-radius: 6px;
+            /* Forma de Cápsula */
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 50px; 
+            
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px; font-weight: 600; letter-spacing: 0.5px;
+            
+            padding: 16px 32px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            backdrop-filter: blur(10px);
-            margin-bottom: 20px;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            
+            display: flex; align-items: center; gap: 10px;
         }
 
         .disconnect-btn:hover {
-            background: rgba(255, 50, 50, 0.15);
-            border-color: #ff4d4d;
-            color: #fff;
-            box-shadow: 0 0 25px rgba(255, 50, 50, 0.2);
-            transform: translateY(-2px);
+            background: rgba(255, 60, 60, 0.15); /* Rojo sutil al tocar */
+            border-color: rgba(255, 60, 60, 0.4);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
         }
+        
+        .disconnect-btn:active { transform: scale(0.95); }
+        
     </style>
     <script type="text/javascript">
       (function(f,b){if(!b.__SV){var e,g,i,h;window.mixpanel=b;b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable time_event track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config reset people.set people.set_once people.unset people.increment people.append people.union people.track_charge people.clear_charges people.delete_user".split(" ");
@@ -1428,15 +1421,14 @@
     </script> 
     <div id="neural-layer" style="display:none; opacity:0;">
         <div class="neural-bg"></div>
+        
         <canvas id="glassCore"></canvas>
-        <div class="hud-overlay">
-            <div class="corner tl"></div><div class="corner tr"></div>
-            <div class="corner bl"></div><div class="corner br"></div>
-        </div>
+        
         <div class="os-interface">
-            <div class="os-status" id="osStatus">ENLACE NEURAL ACTIVO</div>
+            <div class="os-status" id="osStatus">Escuchando...</div>
+            
             <button class="disconnect-btn" onclick="deactivateNeuralMode()">
-                [ CERRAR ENLACE DE VOZ ]
+                <span style="font-size: 18px;">✕</span> Salir
             </button>
         </div>
     </div>
