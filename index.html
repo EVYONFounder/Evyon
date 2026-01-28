@@ -1449,28 +1449,49 @@
                 saveToHistory("user", transcript);
 
                 // ====================================================
-                // 🛡️ CORTAFUEGOS DE VOZ (FIREWALL INSTALADO)
+                // 🛡️ CORTAFUEGOS DE VOZ V2.0 (ESPEJO EXACTO DEL CHAT)
                 // ====================================================
                 
-                // RADARES (Los mismos del chat)
+                // 1. DEFINICIÓN DE RADARES (Copiados del Chat)
                 const mechanicRegex = /(llanta|neumatico|rueda|ponchada|bujia|carburador|motor(?![\s\S]*biologico)|aceite(?![\s\S]*(oliva|coco|cocina))|frenos|clutch|radiador|mecanic|taller|chevrolet|ford|nissan|toyota|coche|carro|camioneta|vehiculo|moto|automovil)/i;
-                const techRegex = /(computadora|laptop|ordenador|pc|tablet|celular|movil|formatear|instalar|tarjeta grafica|gpu|cpu|ram|windows|linux|excel|programar|codigo|python|java|hackear|wifi|internet)/i;
-                
+                const techRegex = /(computadora|laptop|ordenador|pc|tablet|celular|movil|formatear|instalar|actualizar|tarjeta grafica|gpu|cpu|ram|windows|linux|excel|programar|codigo|python|java|hackear|wifi|internet)/i;
+                const schoolRegex = /(tarea de|deberes|resumen|ensayo|historia|guerra|geografia|matematicas|algebra|calculo|politica|presidente|elecciones|religion|biblia|poema|literatura|filosofia)/i;
+                const homeRegex = /(fontanero|plomero|tubería|electricista|foco|pintar casa|impermeabilizar|lavadora|estufa|refrigerador|jardineria|mueble)/i;
+                const moneyRegex = /(invertir|dinero|bolsa de valores|prestamo|banco|tarjeta de credito|ganar dinero|millonario|negocio|finanzas)/i;
+                const loveRegex = /(novia|novio|pareja|amor|ligar|cita|romance|sexo|exnovia|esposa|esposo)/i;
+                const entertainmentRegex = /(pelicula|serie|netflix|cine|videojuego|consola|playstation|xbox|nintendo|meme|chiste|cancion)/i;
+
                 let denialText = null;
 
+                // 2. VERIFICACIÓN DE AMENAZAS
                 if (mechanicRegex.test(lowerText)) {
-                    denialText = "Mi sistema operativo es biológico, no mecánico. Para problemas de tu coche, busca un taller. Yo solo optimizo cuerpos humanos.";
+                    denialText = "Mi sistema es biológico, no mecánico. Para tu coche busca un taller, yo solo optimizo cuerpos humanos.";
                 } 
                 else if (techRegex.test(lowerText)) {
-                    denialText = "Soy una inteligencia de rendimiento físico, no de soporte técnico. No puedo arreglar computadoras, pero puedo arreglar tu postura.";
+                    denialText = "Soy una IA de rendimiento físico, no de soporte técnico. No arreglo computadoras, pero puedo arreglar tu postura.";
+                }
+                else if (schoolRegex.test(lowerText)) {
+                    denialText = "No puedo hacer tu tarea escolar. El aprendizaje es tu entrenamiento mental, no te lo saltes.";
+                }
+                else if (homeRegex.test(lowerText)) {
+                    denialText = "No soy fontanero ni electricista. Llama a un experto para tu casa, yo me encargo de tu salud.";
+                }
+                else if (moneyRegex.test(lowerText)) {
+                    denialText = "No doy consejos financieros. Invierte en tu salud, ese es el único retorno que puedo garantizarte.";
+                }
+                else if (loveRegex.test(lowerText)) {
+                    denialText = "Carezco de inteligencia emocional para temas de pareja. Mejor canaliza esa energía en el gimnasio.";
+                }
+                else if (entertainmentRegex.test(lowerText)) {
+                    denialText = "No estoy conectado a Netflix ni sé de juegos. Si estás aburrido, haz 20 sentadillas ahora mismo.";
                 }
 
-                // SI EL FIREWALL DETECTA ALGO:
+                // 3. EJECUCIÓN DEL BLOQUEO
                 if (denialText) {
                     appendMessage("EVYON IA", denialText, "bot", true);
                     saveToHistory("assistant", denialText);
                     await speakResponse(denialText); // Habla el rechazo
-                    return; // 🛑 ALTO TOTAL: No consultamos a OpenAI
+                    return; // 🛑 ALTO TOTAL
                 }
 
                 // ====================================================
