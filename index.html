@@ -418,97 +418,130 @@
         .btn-cancel { background: rgba(255,255,255,0.1); color: #fff; }
         .btn-confirm { background: #3cd186; color: #000; box-shadow: 0 4px 15px rgba(60, 209, 134, 0.2); }
 
-        /* --- ESTILOS DEL MODO NEURAL 2.0 (Bio-Glow Premium) --- */
+        /* --- ESTILOS DEL MODO NEURAL 3.0 (Halo Cristalizado) --- */
         
-        /* 1. Gatillo (Sin cambios, ya está perfecto) */
+        /* 1. Gatillo (Intacto) */
         .voice-trigger-btn {
             background: transparent; border: none; color: #64748b;
             cursor: pointer; transition: all 0.3s; opacity: 0.8; margin-right: 5px;
             display: flex; align-items: center; justify-content: center;
             height: 40px; width: 40px; border-radius: 12px;
         }
-        .voice-trigger-btn:hover { 
-            color: #3cd186; background: rgba(255, 255, 255, 0.05);
-            transform: scale(1.05); opacity: 1; 
-        }
+        .voice-trigger-btn:hover { color: #3cd186; background: rgba(255, 255, 255, 0.05); transform: scale(1.05); opacity: 1; }
 
-        /* 2. Capa Principal con EFECTO APPLE INTELLIGENCE (EVYON VERSION) */
+        /* 2. Capa Principal */
         #neural-layer {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 9999; transition: opacity 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
-            
-            /* Fuente Moderna (Heredada del sistema, no máquina de escribir) */
-            font-family: 'Inter', sans-serif; 
-            
-            /* EL BIO-GLOW: Sombra interna que respira */
-            box-shadow: inset 0 0 100px rgba(0,0,0,0.9); /* Base oscura */
-            animation: bio-edge-pulse 4s infinite ease-in-out;
-        }
-
-        /* Animación del Borde (Respira en Verde) */
-        @keyframes bio-edge-pulse {
-            0%, 100% { box-shadow: inset 0 0 60px rgba(60, 209, 134, 0.05); }
-            50% { box-shadow: inset 0 0 120px rgba(60, 209, 134, 0.25); border: 1px solid rgba(60, 209, 134, 0.1); }
+            z-index: 9999; transition: opacity 0.5s ease;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden; /* Importante para contener el aura */
         }
 
         .neural-bg {
             position: absolute; width: 100%; height: 100%;
-            /* Fondo más profundo y limpio */
-            background: radial-gradient(circle at center, #050a07 0%, #000000 80%);
+            background: #000; /* Fondo negro puro para contraste */
+            z-index: 0;
         }
 
+        /* 3. EL AURA LÍQUIDA (Apple Intelligence Style) */
+        #neural-layer::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            z-index: 1;
+            background: conic-gradient(
+                from 0deg,
+                transparent 0%,
+                rgba(60, 209, 134, 0.1) 20%,  /* Verde sutil */
+                rgba(60, 209, 134, 0.8) 45%,  /* Verde Esmeralda */
+                rgba(255, 255, 255, 0.9) 50%, /* PLATA CRISTAL (El pico de luz) */
+                rgba(60, 209, 134, 0.8) 55%,  /* Verde Esmeralda */
+                rgba(60, 209, 134, 0.1) 80%,  /* Verde sutil */
+                transparent 100%
+            );
+            animation: aura-spin 4s linear infinite;
+            opacity: 0; transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+
+        /* Máscara para que solo se vea en los bordes */
+        #neural-layer::after {
+            content: '';
+            position: absolute;
+            top: 5px; left: 5px; right: 5px; bottom: 5px; /* Grosor del borde */
+            background: #000; /* Tapa el centro */
+            border-radius: 40px; /* Curvatura estilo iPhone */
+            z-index: 1;
+            box-shadow: inset 0 0 40px #000; /* Suavizado interno */
+        }
+
+        /* ESTADOS DEL AURA (Reactividad JS) */
+        #neural-layer.aura-listening::before { opacity: 1; animation-duration: 2s; filter: blur(20px) saturate(0%); /* Se pone PLATA */ }
+        #neural-layer.aura-speaking::before { opacity: 1; animation-duration: 3s; filter: blur(25px) saturate(150%); /* Se pone VERDE INTENSO */ }
+        
+        @keyframes aura-spin { 100% { transform: rotate(360deg); } }
+
+        /* 4. Canvas (Partículas) - Encima del fondo negro, debajo de la UI */
         #glassCore {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 1; filter: contrast(1.1) brightness(1.2);
+            z-index: 5; mix-blend-mode: screen; /* Fusión de luz */
+            filter: contrast(1.2);
         }
 
-        /* 3. Interfaz Minimalista (Sin bordes, todo flotando) */
+        /* 5. UI FLOTANTE (Encima de todo) */
         .os-interface {
             position: absolute; width: 100%; height: 100%; z-index: 10;
             display: flex; flex-direction: column; justify-content: space-between; align-items: center;
-            padding: 120px 0 80px 0; pointer-events: none;
+            padding: 60px 20px; pointer-events: none;
         }
 
-        .os-status {
-            color: rgba(255,255,255,0.6); 
-            font-size: 12px; font-weight: 500; letter-spacing: 2px;
-            text-transform: uppercase;
-            /* Efecto vidrio sutil en el texto */
-            background: rgba(255, 255, 255, 0.05);
-            padding: 8px 16px; border-radius: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        /* 4. Botón "Pill" (Cápsula de Vidrio) */
-        .disconnect-btn {
-            pointer-events: auto;
-            /* Forma de Cápsula */
-            background: rgba(255, 255, 255, 0.08);
+        /* CÁPSULA DE ESTADO (Top Pill) */
+        .status-pill {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 50px; 
-            
-            color: #fff;
-            font-family: 'Inter', sans-serif;
-            font-size: 14px; font-weight: 600; letter-spacing: 0.5px;
-            
-            padding: 16px 32px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            backdrop-filter: blur(15px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            
+            padding: 12px 24px;
+            border-radius: 50px;
             display: flex; align-items: center; gap: 10px;
-        }
-
-        .disconnect-btn:hover {
-            background: rgba(255, 60, 60, 0.15); /* Rojo sutil al tocar */
-            border-color: rgba(255, 60, 60, 0.4);
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transform: translateY(-20px); opacity: 0; /* Animación entrada */
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         
-        .disconnect-btn:active { transform: scale(0.95); }
+        #neural-layer[style*="opacity: 1"] .status-pill { transform: translateY(0); opacity: 1; }
+
+        .status-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #fff; box-shadow: 0 0 10px #fff;
+            animation: pulse-dot 1s infinite;
+        }
+        
+        .status-text {
+            color: #fff; font-weight: 600; font-size: 13px; letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* BOTÓN DE CIERRE MINIMALISTA */
+        .close-action {
+            pointer-events: auto;
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+            cursor: pointer; opacity: 0.7; transition: all 0.3s;
+        }
+        .close-action:hover { opacity: 1; transform: scale(1.1); }
+        
+        .close-icon {
+            width: 50px; height: 50px; border-radius: 50%;
+            background: rgba(255, 60, 60, 0.2);
+            border: 1px solid rgba(255, 60, 60, 0.4);
+            display: flex; justify-content: center; align-items: center;
+            color: #fff; font-size: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.1);
+        }
+        .close-label { font-size: 10px; letter-spacing: 2px; color: rgba(255,255,255,0.5); text-transform: uppercase; }
+
+        @keyframes pulse-dot { 0%, 100% { opacity: 0.5; transform: scale(1); } 50% { opacity: 1; transform: scale(1.3); } }
         
     </style>
     <script type="text/javascript">
@@ -1336,27 +1369,42 @@
         /* --- LÓGICA DE VOZ --- */
         let recognition;
         
+        /* FUNCIÓN ACTUALIZADA PARA CONTROLAR EL AURA */
         function setOSState(state) {
             const statusEl = document.getElementById('osStatus');
-            const hud = document.querySelector('.hud-overlay');
-            hud.className = 'hud-overlay'; 
+            const layer = document.getElementById('neural-layer'); // El contenedor principal
+            const dot = document.getElementById('statusDot');
+
+            // Limpiamos estados previos
+            layer.classList.remove('aura-listening', 'aura-speaking');
 
             if (state === 'listening') {
+                // MODO PLATA (Atención)
                 targetSpeed = 0.0005; targetPulse = 1.5; targetScale = 1.1;
                 glowColor = { r: 255, g: 255, b: 255 }; 
+                
                 statusEl.innerText = "ESCUCHANDO...";
-                hud.classList.add('hud-listening');
+                dot.style.background = "#ffffff"; dot.style.boxShadow = "0 0 10px #ffffff";
+                
+                layer.classList.add('aura-listening'); // Activa borde blanco
             } 
             else if (state === 'speaking') {
+                // MODO ESMERALDA (Acción)
                 targetSpeed = 0.005; targetPulse = 8.0; targetScale = 1.0;
                 glowColor = { r: 0, g: 255, b: 157 }; 
-                statusEl.innerText = "EVYON HABLANDO";
-                hud.classList.add('hud-speaking');
+                
+                statusEl.innerText = "EVYON RESPONDIENDO";
+                dot.style.background = "#3cd186"; dot.style.boxShadow = "0 0 15px #3cd186";
+                
+                layer.classList.add('aura-speaking'); // Activa borde verde
             }
             else { 
+                // MODO STANDBY
                 targetSpeed = 0.0015; targetPulse = 0; targetScale = 1.0;
                 glowColor = { r: 0, g: 220, b: 255 }; 
-                statusEl.innerText = "ENLACE NEURAL ACTIVO";
+                
+                statusEl.innerText = "EN LÍNEA";
+                dot.style.background = "rgba(255,255,255,0.5)"; dot.style.boxShadow = "none";
             }
         }
 
@@ -1425,11 +1473,15 @@
         <canvas id="glassCore"></canvas>
         
         <div class="os-interface">
-            <div class="os-status" id="osStatus">Escuchando...</div>
+            <div class="status-pill">
+                <div class="status-dot" id="statusDot"></div>
+                <div class="status-text" id="osStatus">EN LÍNEA</div>
+            </div>
             
-            <button class="disconnect-btn" onclick="deactivateNeuralMode()">
-                <span style="font-size: 18px;">✕</span> Salir
-            </button>
+            <div class="close-action" onclick="deactivateNeuralMode()">
+                <div class="close-icon">✕</div>
+                <div class="close-label">Finalizar</div>
+            </div>
         </div>
     </div>
     
