@@ -1270,6 +1270,8 @@
         
         let osActive = false;
         let animationFrameId;
+        // NUEVO: Reproductor Global para evitar bloqueos
+        const evyonVoice = new Audio();
         
         // Variables del Motor
         let particles = [];
@@ -1335,9 +1337,14 @@
             animationFrameId = requestAnimationFrame(drawCore);
         }
 
-        // 3. ACTIVAR MODO
+        // 3. ACTIVAR MODO (CON DESBLOQUEO DE AUDIO)
         function activateNeuralMode() {
             if (!apiKey) { checkApiKey(); return; }
+            
+            // TRUCO: Reproducir silencio para pedir permiso al navegador
+            evyonVoice.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABGDZGF0YQQAAAAAAA==";
+            evyonVoice.play().catch(e => console.log("Audio unlock failed", e));
+
             osActive = true;
             document.getElementById('neural-layer').style.display = 'block';
             
@@ -1460,11 +1467,31 @@
                     headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
                     body: JSON.stringify({ model: "tts-1", voice: "nova", input: text })
                 });
+                
+                if (!res.ok) throw new Error("Error TTS OpenAI");
+
                 const blob = await res.blob();
-                const audio = new Audio(URL.createObjectURL(blob));
-                audio.onended = () => { try { recognition.start(); } catch(e){} };
-                audio.play();
-            } catch (err) { setOSState('idle'); }
+                const audioUrl = URL.createObjectURL(blob);
+                
+                // Usamos el reproductor global YA DESBLOQUEADO
+                evyonVoice.src = audioUrl;
+                
+                evyonVoice.onended = () => {
+                    if (osActive) {
+                        setOSState('listening'); 
+                        try { recognition.start(); } catch(e){} 
+                    }
+                };
+                
+                // Promesa explícita para asegurar play
+                await evyonVoice.play();
+                
+            } catch (err) { 
+                console.error(err);
+                setOSState('idle', 'ERROR DE AUDIO');
+                // Si falla el audio, intentamos seguir escuchando después de 3 seg
+                setTimeout(() => { if(osActive) recognition.start(); }, 3000);
+            }
         }
     </script> 
     <div id="neural-layer" style="display:none; opacity:0;">
