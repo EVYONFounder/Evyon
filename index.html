@@ -1417,41 +1417,94 @@
 
         function startVoiceRecognition() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) { alert("Navegador no soporta voz"); return; }
+            if (!SpeechRecognition) { alert("Tu navegador no soporta voz"); return; }
+            
+            if (recognition) recognition.abort(); 
             
             recognition = new SpeechRecognition();
             recognition.lang = 'es-MX';
             recognition.interimResults = false;
+            recognition.continuous = false;
             
             recognition.onstart = () => setOSState('listening');
             
+            recognition.onerror = (e) => {
+                console.error("Error Voz:", e.error);
+                if (e.error === 'no-speech') {
+                    setOSState('idle', 'NO TE ESCUCHÉ...');
+                    setTimeout(() => { if(osActive) recognition.start(); }, 1000);
+                } else {
+                    setOSState('idle', `ERROR: ${e.error.toUpperCase()}`);
+                }
+            };
+
             recognition.onresult = async (event) => {
                 const transcript = event.results[0][0].transcript;
-                setOSState('processing');
+                const lowerText = transcript.toLowerCase();
                 
+                setOSState('processing'); 
+                
+                // 1. Mostrar lo que dijiste
                 appendMessage("Tú", transcript, "user", false);
                 saveToHistory("user", transcript);
 
+                // ====================================================
+                // 🛡️ CORTAFUEGOS DE VOZ (FIREWALL INSTALADO)
+                // ====================================================
+                
+                // RADARES (Los mismos del chat)
+                const mechanicRegex = /(llanta|neumatico|rueda|ponchada|bujia|carburador|motor(?![\s\S]*biologico)|aceite(?![\s\S]*(oliva|coco|cocina))|frenos|clutch|radiador|mecanic|taller|chevrolet|ford|nissan|toyota|coche|carro|camioneta|vehiculo|moto|automovil)/i;
+                const techRegex = /(computadora|laptop|ordenador|pc|tablet|celular|movil|formatear|instalar|tarjeta grafica|gpu|cpu|ram|windows|linux|excel|programar|codigo|python|java|hackear|wifi|internet)/i;
+                
+                let denialText = null;
+
+                if (mechanicRegex.test(lowerText)) {
+                    denialText = "Mi sistema operativo es biológico, no mecánico. Para problemas de tu coche, busca un taller. Yo solo optimizo cuerpos humanos.";
+                } 
+                else if (techRegex.test(lowerText)) {
+                    denialText = "Soy una inteligencia de rendimiento físico, no de soporte técnico. No puedo arreglar computadoras, pero puedo arreglar tu postura.";
+                }
+
+                // SI EL FIREWALL DETECTA ALGO:
+                if (denialText) {
+                    appendMessage("EVYON IA", denialText, "bot", true);
+                    saveToHistory("assistant", denialText);
+                    await speakResponse(denialText); // Habla el rechazo
+                    return; // 🛑 ALTO TOTAL: No consultamos a OpenAI
+                }
+
+                // ====================================================
+                // FIN DEL CORTAFUEGOS - SI PASA, VAMOS A LA IA
+                // ====================================================
+
                 try {
-                    const voicePrompt = getDynamicSystemPrompt(transcript, currentUserData) + " [RESPONDE BREVE MAX 2 ORACIONES]";
+                    const voicePrompt = getDynamicSystemPrompt(transcript, currentUserData) + " [RESPONDE MUY BREVE, MAX 20 PALABRAS, COMO UNA CONVERSACIÓN REAL]";
+                    
                     let res = await fetch("https://api.openai.com/v1/chat/completions", {
                         method: "POST",
                         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
                         body: JSON.stringify({
                             model: "gpt-4o-mini",
                             messages: [{ role: "system", content: voicePrompt }, ...conversationHistory],
-                            max_tokens: 150
+                            max_tokens: 100
                         })
                     });
-                    let data = await res.json();
-                    let reply = data.choices[0].message.content;
+                    
+                    const data = await res.json();
+                    if (data.error) throw new Error(data.error.message);
+                    const reply = data.choices[0].message.content;
 
                     appendMessage("EVYON IA", reply, "bot", true);
                     saveToHistory("assistant", reply);
-                    speakResponse(reply);
+                    await speakResponse(reply);
 
-                } catch (e) { console.error(e); setOSState('idle'); }
+                } catch (e) { 
+                    console.error(e); 
+                    setOSState('idle', 'ERROR DE CONEXIÓN');
+                    setTimeout(() => { if(osActive) recognition.start(); }, 2000);
+                }
             };
+            
             recognition.start();
         }
 
