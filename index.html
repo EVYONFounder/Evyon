@@ -330,6 +330,24 @@
         }
         .chat-input::placeholder { color: #64748b; }
 
+        /* --- SCROLLBAR DEL INPUT (Corrección Desktop) --- */
+        .chat-input::-webkit-scrollbar {
+            width: 5px; /* Mantiene la barra delgada siempre */
+        }
+        
+        .chat-input::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .chat-input::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+
+        .chat-input::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.4); /* Brilla al tocar, pero NO engorda */
+        }
+
         /* --- BOTÓN DE ENVIAR REACTIVO --- */
         .send-btn {
             background: #1e293b; /* Estado Base: Gris Apagado */
