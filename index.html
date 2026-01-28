@@ -1411,13 +1411,13 @@
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SpeechRecognition) { alert("Tu navegador no soporta voz"); return; }
             
-            // Aseguramos limpieza previa
+            // Limpieza de seguridad
             if (recognition) { try { recognition.abort(); } catch(e){} }
             
             recognition = new SpeechRecognition();
             recognition.lang = 'es-MX';
             recognition.interimResults = false;
-            recognition.continuous = false; // Vital para evitar cuelgues
+            recognition.continuous = false; // Vital para evitar errores
             
             recognition.onstart = () => setOSState('listening');
             
@@ -1425,14 +1425,14 @@
                 console.error("Error Voz:", e.error);
                 if (e.error === 'no-speech' || e.error === 'network') {
                     setOSState('idle', '...');
-                    // Reinicio suave si no escuchó nada
+                    // Reintento suave si no escuchó
                     if(osActive) setTimeout(() => { try { recognition.start(); } catch(e){} }, 500);
                 } else {
                     setOSState('idle', 'REINTENTANDO...');
                 }
             };
             
-            // Evitar que se apague solo
+            // Loop de seguridad para mantenerlo vivo
             recognition.onend = () => {
                 if (osActive && document.getElementById('osStatus').innerText === "ESCUCHANDO...") {
                    setTimeout(() => { try { recognition.start(); } catch(e){} }, 500);
@@ -1443,7 +1443,7 @@
                 const transcript = event.results[0][0].transcript;
                 const lowerText = transcript.toLowerCase();
                 
-                // Detenemos escucha para procesar
+                // Detenemos para procesar
                 recognition.onend = null; 
                 recognition.stop();
                 setOSState('processing'); 
@@ -1451,28 +1451,42 @@
                 appendMessage("Tú", transcript, "user", false);
                 saveToHistory("user", transcript);
 
-                // --- CORTAFUEGOS DE VOZ ---
-                const mechanicRegex = /(llanta|neumatico|motor|coche|carro|mecanic|taller)/i;
-                const techRegex = /(computadora|laptop|pc|wifi|internet|impresora)/i;
-                const loveRegex = /(novia|amor|pareja|ex)/i;
+                // ====================================================
+                // 🛡️ CORTAFUEGOS DE VOZ COMPLETO (V5.0)
+                // ====================================================
+                const mechanicRegex = /(llanta|neumatico|rueda|ponchada|bujia|carburador|motor(?![\s\S]*biologico)|aceite(?![\s\S]*(oliva|coco|cocina))|frenos|clutch|radiador|mecanic|taller|chevrolet|ford|nissan|toyota|coche|carro|camioneta|vehiculo|moto|automovil)/i;
+                const techRegex = /(computadora|laptop|ordenador|pc|tablet|celular|movil|formatear|instalar|actualizar|tarjeta grafica|gpu|cpu|ram|windows|linux|excel|programar|codigo|python|java|hackear|wifi|internet)/i;
+                const schoolRegex = /(tarea de|deberes|resumen|ensayo|historia|guerra|geografia|matematicas|algebra|calculo|politica|presidente|elecciones|religion|biblia|poema|literatura|filosofia)/i;
+                const homeRegex = /(fontanero|plomero|tubería|electricista|foco|pintar casa|impermeabilizar|lavadora|estufa|refrigerador|jardineria|mueble)/i;
+                const moneyRegex = /(invertir|dinero|bolsa de valores|prestamo|banco|tarjeta de credito|ganar dinero|millonario|negocio|finanzas)/i;
+                const loveRegex = /(novia|novio|pareja|amor|ligar|cita|romance|sexo|exnovia|esposa|esposo)/i;
+                const entertainmentRegex = /(pelicula|serie|netflix|cine|videojuego|consola|playstation|xbox|nintendo|meme|chiste|cancion)/i;
 
-                let denial = null;
-                if (mechanicRegex.test(lowerText)) denial = "Soy biológico, no mecánico. Busca un taller.";
-                else if (techRegex.test(lowerText)) denial = "No arreglo computadoras, arreglo cuerpos.";
-                else if (loveRegex.test(lowerText)) denial = "No tengo corazón, tengo procesador. Entrena para olvidar.";
+                let denialText = null;
 
-                if (denial) {
-                    appendMessage("EVYON IA", denial, "bot", true);
-                    saveToHistory("assistant", denial);
-                    await speakResponse(denial);
-                    return;
+                if (mechanicRegex.test(lowerText)) denialText = "Mi sistema es biológico, no mecánico. Busca un taller.";
+                else if (techRegex.test(lowerText)) denialText = "No soy soporte técnico. No arreglo computadoras, arreglo cuerpos.";
+                else if (schoolRegex.test(lowerText)) denialText = "El aprendizaje es tu entrenamiento mental. Haz tu tarea tú mismo.";
+                else if (homeRegex.test(lowerText)) denialText = "No soy fontanero ni electricista. Yo optimizo tu salud, no tu casa.";
+                else if (moneyRegex.test(lowerText)) denialText = "No doy consejos financieros. Invierte en tu salud.";
+                else if (loveRegex.test(lowerText)) denialText = "No tengo corazón, tengo procesador. Entrena para superar el drama.";
+                else if (entertainmentRegex.test(lowerText)) denialText = "No estoy conectado a Netflix. Si estás aburrido, haz sentadillas.";
+
+                if (denialText) {
+                    appendMessage("EVYON IA", denialText, "bot", true);
+                    saveToHistory("assistant", denialText);
+                    await speakResponse(denialText);
+                    return; // 🛑 ALTO TOTAL: El cortafuegos bloqueó la llamada a la IA
                 }
 
+                // ====================================================
+                // FIN CORTAFUEGOS - CONEXIÓN CON IA
+                // ====================================================
+
                 try {
-                    // --- AQUÍ ESTABA EL ERROR DE PERSONALIDAD ---
-                    // Quitamos la restricción de palabras y pedimos "Conversacional"
+                    // INSTRUCCIÓN DE PERSONALIDAD (Conversacional + Rol)
                     const voicePrompt = getDynamicSystemPrompt(transcript, currentUserData) + 
-                                      " [INSTRUCCIÓN DE VOZ: Responde de manera hablada y fluida. MANTÉN TU PERSONALIDAD (Leónidas/Doctor/etc) INTULA. No hagas listas, usa oraciones completas. Máximo 3 frases.]";
+                                      " [INSTRUCCIÓN DE VOZ: Responde de manera hablada y fluida. MANTÉN TU PERSONALIDAD (Leónidas/Medico/Monje Zen/Chef/Jarvis/Default/NO OLVIDES EL ESCUDO ANTI TRAMPAS). No hagas listas, usa oraciones completas. Máximo 6 frases.]";
                     
                     let res = await fetch("https://api.openai.com/v1/chat/completions", {
                         method: "POST",
@@ -1480,7 +1494,7 @@
                         body: JSON.stringify({
                             model: "gpt-4o-mini",
                             messages: [{ role: "system", content: voicePrompt }, ...conversationHistory],
-                            max_tokens: 250 // Aumentamos tokens para que no se corte
+                            max_tokens: 250
                         })
                     });
                     
@@ -1495,6 +1509,7 @@
                 } catch (e) { 
                     console.error(e); 
                     setOSState('idle', 'ERROR CONEXIÓN');
+                    // Reintento automático
                     setTimeout(() => { if(osActive) startVoiceRecognition(); }, 2000);
                 }
             };
