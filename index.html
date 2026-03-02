@@ -1363,9 +1363,9 @@
             }, 500);
         }
 
-        /* --- LÓGICA DE VOZ (MANOS LIBRES REAL) --- */
+       /* --- LÓGICA DE VOZ (MANOS LIBRES V7.0 - OÍDO ÚNICO iOS) --- */
         let recognition = null;
-        let isProcessing = false; // Bandera vital: nos dice si EVYON está pensando/hablando
+        let isProcessing = false; 
         
         function setOSState(state, customText = null) {
             const statusEl = document.getElementById('osStatus');
@@ -1375,7 +1375,6 @@
             layer.classList.remove('aura-listening', 'aura-speaking');
 
             if (state === 'listening') {
-                isProcessing = false; // El usuario tiene el turno
                 targetSpeed = 0.0005; targetPulse = 1.5; targetScale = 1.1;
                 glowColor = { r: 255, g: 255, b: 255 }; 
                 statusEl.innerText = customText || "ESCUCHANDO...";
@@ -1383,7 +1382,6 @@
                 layer.classList.add('aura-listening');
             } 
             else if (state === 'speaking') {
-                isProcessing = true; // EVYON tiene el turno
                 targetSpeed = 0.005; targetPulse = 8.0; targetScale = 1.0;
                 glowColor = { r: 0, g: 255, b: 157 }; 
                 statusEl.innerText = customText || "EVYON RESPONDIENDO";
@@ -1391,14 +1389,12 @@
                 layer.classList.add('aura-speaking');
             }
             else if (state === 'processing') {
-                isProcessing = true; // IA trabajando
                 targetSpeed = 0.002; targetPulse = 3.0; targetScale = 0.9;
                 glowColor = { r: 0, g: 220, b: 255 };
                 statusEl.innerText = "ANALIZANDO...";
                 dot.style.background = "#00dcff"; dot.style.boxShadow = "0 0 15px #00dcff";
             }
             else { 
-                isProcessing = false;
                 targetSpeed = 0.0015; targetPulse = 0; targetScale = 1.0;
                 glowColor = { r: 0, g: 220, b: 255 }; 
                 statusEl.innerText = customText || "EN LÍNEA";
@@ -1406,68 +1402,45 @@
             }
         }
 
-        // Tocar la cápsula forzará un reinicio absoluto del micrófono si se traba
-        function forceProcessVoice() {
-            if (osActive) {
-                if (recognition && !isProcessing) recognition.stop();
-                setOSState('idle', 'REINICIANDO MICRO...');
-                setTimeout(() => startVoiceRecognition(), 500);
-            }
-        }
+        // MOTOR PRINCIPAL DEL OÍDO
+        function initEvyonEar() {
+            if (recognition) return; 
 
-        function startVoiceRecognition() {
-            if (!osActive) return; // Seguridad
-            
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SpeechRecognition) { alert("Tu navegador no soporta voz"); return; }
-            
-            // Destrucción Segura del oído anterior (Evita zombies en iPhone)
-            if (recognition) {
-                recognition.onend = null;
-                recognition.onerror = null;
-                recognition.onresult = null;
-                try { recognition.abort(); } catch(e){}
-            }
-            
-            // Oído Fresco
+
             recognition = new SpeechRecognition();
             recognition.lang = 'es-MX';
             recognition.interimResults = false;
-            recognition.continuous = false; // iOS no soporta continuous bien
-            
+            recognition.continuous = false; // Debe ser false para iOS
+
             recognition.onstart = () => {
                 if (osActive && !isProcessing) setOSState('listening');
             };
-            
+
             recognition.onerror = (e) => {
-                if (e.error === 'aborted') return; // Apagado intencional
-                
-                if (e.error === 'no-speech') {
-                    // Si hubo silencio, el iPhone apaga el micro. Lo volvemos a prender en automático.
-                    if (osActive && !isProcessing) {
-                        setTimeout(() => startVoiceRecognition(), 300);
-                    }
-                } else {
-                    if (osActive && !isProcessing) {
-                        setOSState('idle', 'RECONECTANDO...');
-                        setTimeout(() => startVoiceRecognition(), 1500);
-                    }
-                }
+                console.log("Error Voz:", e.error);
             };
-            
+
             recognition.onend = () => {
-                // Ciclo infinito: Si el micro se apaga pero EVYON NO está hablando, vuelve a escuchar.
+                // EL TRUCO VITAL: Si hay silencio o se apaga, y NO estamos procesando la IA, lo volvemos a prender suavemente.
                 if (osActive && !isProcessing) {
-                    setTimeout(() => startVoiceRecognition(), 300);
+                    setTimeout(() => {
+                        try { recognition.start(); } catch(err){}
+                    }, 400); 
                 }
             };
 
             recognition.onresult = async (event) => {
-                const transcript = event.results[0][0].transcript;
-                const lowerText = transcript.toLowerCase();
+                if (isProcessing) return; 
+
+                const transcript = event.results[0][0].transcript.trim();
+                if (!transcript) return;
+
+                isProcessing = true; // 🔴 SEMÁFORO EN ROJO: Dejamos de escuchar
+                setOSState('processing'); 
                 
-                setOSState('processing'); // Bloqueamos todo
-                if (recognition) recognition.abort(); // Apagamos micro rápido
+                // NOTA: Eliminamos la orden "abort()". Dejamos que se apague natural.
                 
                 appendMessage("Tú", transcript, "user", false);
                 saveToHistory("user", transcript);
@@ -1497,7 +1470,6 @@
                     return; 
                 }
 
-                // --- CONEXIÓN LLM ---
                 try {
                     const voicePrompt = getDynamicSystemPrompt(transcript, currentUserData) + 
                                       " [INSTRUCCIÓN DE VOZ: Responde de manera hablada y fluida. MANTÉN TU PERSONALIDAD (Leónidas/Medico/Monje Zen/Chef/Jarvis/Default/NO OLVIDES EL ESCUDO ANTI TRAMPAS) INTACTA. No hagas listas, usa oraciones completas. Máximo 6 frases.]";
@@ -1523,18 +1495,36 @@
                 } catch (e) { 
                     console.error(e); 
                     setOSState('idle', 'ERROR CONEXIÓN');
-                    setTimeout(() => { if(osActive) startVoiceRecognition(); }, 3000);
+                    isProcessing = false; // 🟢 SEMÁFORO VERDE SI FALLA
+                    setTimeout(() => { try{ recognition.start(); } catch(err){} }, 3000);
                 }
             };
-            
-            try { recognition.start(); } catch(e){}
+        }
+
+        // Tocar la cápsula forzará un reinicio limpio
+        function forceProcessVoice() {
+            if (osActive && recognition) {
+                try { recognition.stop(); } catch(e){}
+                setOSState('idle', 'REINICIANDO...');
+                isProcessing = false; // Limpiamos bandera
+                setTimeout(() => { try { recognition.start(); } catch(e){} }, 500);
+            }
+        }
+
+        function startVoiceRecognition() {
+            if (!osActive) return; 
+            initEvyonEar(); // Creamos o reutilizamos el oído
+            if (!isProcessing) {
+                try { recognition.start(); } catch(e){}
+            }
         }
 
         function stopVoiceRecognition() {
             isProcessing = false;
             if (recognition) { 
-                recognition.onend = null; 
-                recognition.abort(); 
+                recognition.onend = null; // Rompemos el ciclo
+                try { recognition.abort(); } catch(e){} 
+                recognition = null; // Destruimos para la próxima vez
             }
         }
 
@@ -1556,11 +1546,11 @@
                 evyonVoice.src = audioUrl;
                 evyonVoice.playbackRate = 1.0; 
                 
-                // EVENTO CUANDO EVYON TERMINA DE HABLAR:
                 evyonVoice.onended = () => {
                     if (osActive) {
-                        isProcessing = false; // 🟢 ¡EL SEMÁFORO PASA A VERDE! (El fix vital)
-                        setTimeout(() => { startVoiceRecognition(); }, 500); 
+                        isProcessing = false; // 🟢 SEMÁFORO VERDE: Terminó de hablar
+                        // Mandamos arrancar el micro en cuanto termina el audio
+                        try { recognition.start(); } catch(e){} 
                     }
                 };
                 
@@ -1568,9 +1558,9 @@
                 
             } catch (err) { 
                 console.error(err);
-                isProcessing = false; // 🟢 Semáforo en verde también si hay error
+                isProcessing = false; // 🟢 SEMÁFORO VERDE
                 setOSState('idle', 'ERROR AUDIO');
-                setTimeout(() => { if(osActive) startVoiceRecognition(); }, 3000);
+                setTimeout(() => { if(osActive) { try{ recognition.start(); } catch(e){} } }, 3000);
             }
         }
             
