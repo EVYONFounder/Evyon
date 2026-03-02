@@ -1262,110 +1262,13 @@
             }
         }
         
-        /* ==========================================
-           MÓDULO DE ENLACE NEURAL (CEREBRO V6.0 - MANOS LIBRES iOS)
+      /* ==========================================
+           MÓDULO DE ENLACE NEURAL (V8.0 - ANTI-CONGELAMIENTO iOS)
            ========================================== */
         
-        let osActive = false;
-        let animationFrameId;
-        const evyonVoice = new Audio(); // Reproductor Global
-        
-        let particles = [];
-        const numParticles = 380; 
-        let targetSpeed = 0.0015, currentSpeed = 0.0015;
-        let targetScale = 1.0, currentScale = 1.0;
-        let targetPulse = 0, currentPulse = 0;
-        let glowColor = { r: 0, g: 255, b: 157 }; 
-
-        function initParticles() {
-            particles = [];
-            for(let i=0; i<numParticles; i++) {
-                const theta = Math.acos(-1 + (2 * i) / numParticles);
-                const phi = Math.sqrt(numParticles * Math.PI) * theta;
-                particles.push({ 
-                    x: Math.sin(theta) * Math.cos(phi), 
-                    y: Math.sin(theta) * Math.sin(phi), 
-                    z: Math.cos(theta) 
-                });
-            }
-        }
-
-        function drawCore() {
-            if (!osActive) return;
-            const canvas = document.getElementById('glassCore');
-            const ctx = canvas.getContext('2d');
-
-            currentSpeed += (targetSpeed - currentSpeed) * 0.05;
-            currentScale += (targetScale - currentScale) * 0.05;
-            currentPulse += (targetPulse - currentPulse) * 0.1;
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            const cx = canvas.width / 2;
-            const cy = canvas.height / 2;
-            const minDim = Math.min(canvas.width, canvas.height);
-            const baseRadius = minDim * 0.35 * currentScale;
-
-            ctx.globalCompositeOperation = 'lighter';
-
-            particles.forEach(p => {
-                const rx = p.x * Math.cos(currentSpeed) - p.z * Math.sin(currentSpeed);
-                const rz = p.x * Math.sin(currentSpeed) + p.z * Math.cos(currentSpeed);
-                p.x = rx; p.z = rz;
-
-                const fov = 2.5;
-                const scale = fov / (fov + p.z);
-                const x2d = cx + (p.x * baseRadius * scale);
-                const y2d = cy + (p.y * baseRadius * scale);
-
-                const vibe = (Math.random() - 0.5) * currentPulse;
-                const alpha = (scale - 0.5) + (currentPulse * 0.1);
-                
-                ctx.fillStyle = `rgba(${glowColor.r}, ${glowColor.g}, ${glowColor.b}, ${Math.max(0, alpha)})`;
-                ctx.beginPath();
-                ctx.arc(x2d + vibe, y2d + vibe, scale * 2.5, 0, Math.PI * 2);
-                ctx.fill();
-            });
-
-            animationFrameId = requestAnimationFrame(drawCore);
-        }
-
-        function activateNeuralMode() {
-            if (!apiKey) { checkApiKey(); return; }
-            
-            evyonVoice.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABGDZGF0YQQAAAAAAA==";
-            evyonVoice.play().catch(e => console.log("Audio unlock:", e));
-
-            osActive = true;
-            document.getElementById('neural-layer').style.display = 'block';
-            
-            const canvas = document.getElementById('glassCore');
-            const dpr = window.devicePixelRatio || 1;
-            canvas.width = window.innerWidth * dpr;
-            canvas.height = window.innerHeight * dpr;
-            
-            initParticles();
-            
-            setTimeout(() => {
-                document.getElementById('neural-layer').style.opacity = 1;
-                drawCore();
-                startVoiceRecognition();
-            }, 50);
-        }
-
-        function deactivateNeuralMode() {
-            document.getElementById('neural-layer').style.opacity = 0;
-            osActive = false; // Apagamos bandera primero
-            stopVoiceRecognition();
-            setTimeout(() => {
-                cancelAnimationFrame(animationFrameId);
-                document.getElementById('neural-layer').style.display = 'none';
-            }, 500);
-        }
-
-       /* --- LÓGICA DE VOZ (MANOS LIBRES V7.0 - OÍDO ÚNICO iOS) --- */
         let recognition = null;
         let isProcessing = false; 
+        let watchdogTimer = null; // 🐕 Guardián que evita que se quede en Analizando
         
         function setOSState(state, customText = null) {
             const statusEl = document.getElementById('osStatus');
@@ -1412,22 +1315,26 @@
             recognition = new SpeechRecognition();
             recognition.lang = 'es-MX';
             recognition.interimResults = false;
-            recognition.continuous = false; // Debe ser false para iOS
+            recognition.continuous = false; 
 
             recognition.onstart = () => {
                 if (osActive && !isProcessing) setOSState('listening');
             };
 
             recognition.onerror = (e) => {
-                console.log("Error Voz:", e.error);
+                if (e.error === 'aborted') return; 
+                // Reinicio silencioso si detecta silencio absoluto
+                if (e.error === 'no-speech') {
+                    if (osActive && !isProcessing) {
+                        setTimeout(() => { try { recognition.start(); } catch(err){} }, 300);
+                    }
+                }
             };
 
             recognition.onend = () => {
-                // EL TRUCO VITAL: Si hay silencio o se apaga, y NO estamos procesando la IA, lo volvemos a prender suavemente.
+                // El ciclo infinito suave
                 if (osActive && !isProcessing) {
-                    setTimeout(() => {
-                        try { recognition.start(); } catch(err){}
-                    }, 400); 
+                    setTimeout(() => { try { recognition.start(); } catch(err){} }, 400); 
                 }
             };
 
@@ -1437,10 +1344,21 @@
                 const transcript = event.results[0][0].transcript.trim();
                 if (!transcript) return;
 
-                isProcessing = true; // 🔴 SEMÁFORO EN ROJO: Dejamos de escuchar
+                isProcessing = true; // 🔴 Semáforo rojo
                 setOSState('processing'); 
                 
-                // NOTA: Eliminamos la orden "abort()". Dejamos que se apague natural.
+                // 🛑 EL FIX DE iOS: Obligamos al micrófono a soltar la bocina
+                try { recognition.stop(); } catch(e){}
+                
+                // 🐕 Activamos el Guardián: Si pasan 12 seg y sigue atascado, lo reinicia
+                if (watchdogTimer) clearTimeout(watchdogTimer);
+                watchdogTimer = setTimeout(() => {
+                    if (isProcessing) {
+                        isProcessing = false;
+                        setOSState('idle', 'REINICIANDO FLUJO...');
+                        setTimeout(() => { try { recognition.start(); } catch(e){} }, 500);
+                    }
+                }, 12000);
                 
                 appendMessage("Tú", transcript, "user", false);
                 saveToHistory("user", transcript);
@@ -1472,7 +1390,7 @@
 
                 try {
                     const voicePrompt = getDynamicSystemPrompt(transcript, currentUserData) + 
-                                      " [INSTRUCCIÓN DE VOZ: Responde de manera hablada y fluida. MANTÉN TU PERSONALIDAD (Leónidas/Medico/Monje Zen/Chef/Jarvis/Default/NO OLVIDES EL ESCUDO ANTI TRAMPAS) INTACTA. No hagas listas, usa oraciones completas. Máximo 6 frases.]";
+                                      " [INSTRUCCIÓN DE VOZ: Responde de manera hablada y fluida. MANTÉN TU PERSONALIDAD INTACTA. Usa oraciones completas. Máximo 6 frases.]";
                     
                     let res = await fetch("https://api.openai.com/v1/chat/completions", {
                         method: "POST",
@@ -1495,25 +1413,26 @@
                 } catch (e) { 
                     console.error(e); 
                     setOSState('idle', 'ERROR CONEXIÓN');
-                    isProcessing = false; // 🟢 SEMÁFORO VERDE SI FALLA
+                    isProcessing = false; // 🟢 Soltamos bandera
                     setTimeout(() => { try{ recognition.start(); } catch(err){} }, 3000);
                 }
             };
         }
 
-        // Tocar la cápsula forzará un reinicio limpio
+        // Tocar la cápsula destraba todo en caso de emergencia extrema
         function forceProcessVoice() {
-            if (osActive && recognition) {
-                try { recognition.stop(); } catch(e){}
-                setOSState('idle', 'REINICIANDO...');
-                isProcessing = false; // Limpiamos bandera
+            if (osActive) {
+                isProcessing = false;
+                if (watchdogTimer) clearTimeout(watchdogTimer);
+                if (recognition) { try { recognition.stop(); } catch(e){} }
+                setOSState('idle', 'REINICIO MANUAL...');
                 setTimeout(() => { try { recognition.start(); } catch(e){} }, 500);
             }
         }
 
         function startVoiceRecognition() {
             if (!osActive) return; 
-            initEvyonEar(); // Creamos o reutilizamos el oído
+            initEvyonEar(); 
             if (!isProcessing) {
                 try { recognition.start(); } catch(e){}
             }
@@ -1521,15 +1440,17 @@
 
         function stopVoiceRecognition() {
             isProcessing = false;
+            if (watchdogTimer) clearTimeout(watchdogTimer);
             if (recognition) { 
-                recognition.onend = null; // Rompemos el ciclo
+                recognition.onend = null; 
                 try { recognition.abort(); } catch(e){} 
-                recognition = null; // Destruimos para la próxima vez
+                recognition = null; 
             }
         }
 
         async function speakResponse(text) {
             setOSState('speaking');
+            if (watchdogTimer) clearTimeout(watchdogTimer); // 🐕 Desactivamos la alarma, todo salió bien
             
             try {
                 const res = await fetch("https://api.openai.com/v1/audio/speech", {
@@ -1548,9 +1469,8 @@
                 
                 evyonVoice.onended = () => {
                     if (osActive) {
-                        isProcessing = false; // 🟢 SEMÁFORO VERDE: Terminó de hablar
-                        // Mandamos arrancar el micro en cuanto termina el audio
-                        try { recognition.start(); } catch(e){} 
+                        isProcessing = false; // 🟢 SEMÁFORO VERDE: Ya terminó de hablar
+                        setTimeout(() => { try { recognition.start(); } catch(err){} }, 500); 
                     }
                 };
                 
