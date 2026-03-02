@@ -1263,12 +1263,109 @@
         }
         
      /* ==========================================
-           MÓDULO DE ENLACE NEURAL (V8.0 - ANTI-CONGELAMIENTO iOS)
+           MÓDULO DE ENLACE NEURAL (VISUALES + VOZ V8.0)
            ========================================== */
+        let osActive = false;
+        let animationFrameId;
+        const evyonVoice = new Audio(); 
         
+        let particles = [];
+        const numParticles = 380; 
+        let targetSpeed = 0.0015, currentSpeed = 0.0015;
+        let targetScale = 1.0, currentScale = 1.0;
+        let targetPulse = 0, currentPulse = 0;
+        let glowColor = { r: 0, g: 255, b: 157 }; 
+
+        function initParticles() {
+            particles = [];
+            for(let i=0; i<numParticles; i++) {
+                const theta = Math.acos(-1 + (2 * i) / numParticles);
+                const phi = Math.sqrt(numParticles * Math.PI) * theta;
+                particles.push({ 
+                    x: Math.sin(theta) * Math.cos(phi), 
+                    y: Math.sin(theta) * Math.sin(phi), 
+                    z: Math.cos(theta) 
+                });
+            }
+        }
+
+        function drawCore() {
+            if (!osActive) return;
+            const canvas = document.getElementById('glassCore');
+            const ctx = canvas.getContext('2d');
+
+            currentSpeed += (targetSpeed - currentSpeed) * 0.05;
+            currentScale += (targetScale - currentScale) * 0.05;
+            currentPulse += (targetPulse - currentPulse) * 0.1;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            const minDim = Math.min(canvas.width, canvas.height);
+            const baseRadius = minDim * 0.35 * currentScale;
+
+            ctx.globalCompositeOperation = 'lighter';
+
+            particles.forEach(p => {
+                const rx = p.x * Math.cos(currentSpeed) - p.z * Math.sin(currentSpeed);
+                const rz = p.x * Math.sin(currentSpeed) + p.z * Math.cos(currentSpeed);
+                p.x = rx; p.z = rz;
+
+                const fov = 2.5;
+                const scale = fov / (fov + p.z);
+                const x2d = cx + (p.x * baseRadius * scale);
+                const y2d = cy + (p.y * baseRadius * scale);
+
+                const vibe = (Math.random() - 0.5) * currentPulse;
+                const alpha = (scale - 0.5) + (currentPulse * 0.1);
+                
+                ctx.fillStyle = `rgba(${glowColor.r}, ${glowColor.g}, ${glowColor.b}, ${Math.max(0, alpha)})`;
+                ctx.beginPath();
+                ctx.arc(x2d + vibe, y2d + vibe, scale * 2.5, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            animationFrameId = requestAnimationFrame(drawCore);
+        }
+
+        function activateNeuralMode() {
+            if (!apiKey) { checkApiKey(); return; }
+            
+            evyonVoice.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABGDZGF0YQQAAAAAAA==";
+            evyonVoice.play().catch(e => console.log("Audio unlock:", e));
+
+            osActive = true;
+            document.getElementById('neural-layer').style.display = 'block';
+            
+            const canvas = document.getElementById('glassCore');
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = window.innerWidth * dpr;
+            canvas.height = window.innerHeight * dpr;
+            
+            initParticles();
+            
+            setTimeout(() => {
+                document.getElementById('neural-layer').style.opacity = 1;
+                drawCore();
+                startVoiceRecognition();
+            }, 50);
+        }
+
+        function deactivateNeuralMode() {
+            document.getElementById('neural-layer').style.opacity = 0;
+            osActive = false; 
+            stopVoiceRecognition();
+            setTimeout(() => {
+                cancelAnimationFrame(animationFrameId);
+                document.getElementById('neural-layer').style.display = 'none';
+            }, 500);
+        }
+
+        /* --- LÓGICA DE VOZ (V8.0) --- */
         let recognition = null;
         let isProcessing = false; 
-        let watchdogTimer = null; // 🐕 Guardián que evita que se quede en Analizando
+        let watchdogTimer = null; 
         
         function setOSState(state, customText = null) {
             const statusEl = document.getElementById('osStatus');
@@ -1305,7 +1402,6 @@
             }
         }
 
-        // MOTOR PRINCIPAL DEL OÍDO
         function initEvyonEar() {
             if (recognition) return; 
 
@@ -1323,7 +1419,6 @@
 
             recognition.onerror = (e) => {
                 if (e.error === 'aborted') return; 
-                // Reinicio silencioso si detecta silencio absoluto
                 if (e.error === 'no-speech') {
                     if (osActive && !isProcessing) {
                         setTimeout(() => { try { recognition.start(); } catch(err){} }, 300);
@@ -1332,7 +1427,6 @@
             };
 
             recognition.onend = () => {
-                // El ciclo infinito suave
                 if (osActive && !isProcessing) {
                     setTimeout(() => { try { recognition.start(); } catch(err){} }, 400); 
                 }
@@ -1344,13 +1438,11 @@
                 const transcript = event.results[0][0].transcript.trim();
                 if (!transcript) return;
 
-                isProcessing = true; // 🔴 Semáforo rojo
+                isProcessing = true; 
                 setOSState('processing'); 
                 
-                // 🛑 EL FIX DE iOS: Obligamos al micrófono a soltar la bocina
                 try { recognition.stop(); } catch(e){}
                 
-                // 🐕 Activamos el Guardián: Si pasan 12 seg y sigue atascado, lo reinicia
                 if (watchdogTimer) clearTimeout(watchdogTimer);
                 watchdogTimer = setTimeout(() => {
                     if (isProcessing) {
@@ -1363,7 +1455,6 @@
                 appendMessage("Tú", transcript, "user", false);
                 saveToHistory("user", transcript);
 
-                // --- 🛡️ CORTAFUEGOS ---
                 const mechanicRegex = /(llanta|neumatico|rueda|ponchada|bujia|carburador|motor(?![\s\S]*biologico)|aceite(?![\s\S]*(oliva|coco|cocina))|frenos|clutch|radiador|mecanic|taller|chevrolet|ford|nissan|toyota|coche|carro|camioneta|vehiculo|moto|automovil)/i;
                 const techRegex = /(computadora|laptop|ordenador|pc|tablet|celular|movil|formatear|instalar|actualizar|tarjeta grafica|gpu|cpu|ram|windows|linux|excel|programar|codigo|python|java|hackear|wifi|internet)/i;
                 const schoolRegex = /(tarea de|deberes|resumen|ensayo|historia|guerra|geografia|matematicas|algebra|calculo|politica|presidente|elecciones|religion|biblia|poema|literatura|filosofia)/i;
@@ -1413,13 +1504,12 @@
                 } catch (e) { 
                     console.error(e); 
                     setOSState('idle', 'ERROR CONEXIÓN');
-                    isProcessing = false; // 🟢 Soltamos bandera
+                    isProcessing = false; 
                     setTimeout(() => { try{ recognition.start(); } catch(err){} }, 3000);
                 }
             };
         }
 
-        // Tocar la cápsula destraba todo en caso de emergencia extrema
         function forceProcessVoice() {
             if (osActive) {
                 isProcessing = false;
@@ -1450,7 +1540,7 @@
 
         async function speakResponse(text) {
             setOSState('speaking');
-            if (watchdogTimer) clearTimeout(watchdogTimer); // 🐕 Desactivamos la alarma, todo salió bien
+            if (watchdogTimer) clearTimeout(watchdogTimer); 
             
             try {
                 const res = await fetch("https://api.openai.com/v1/audio/speech", {
@@ -1469,7 +1559,7 @@
                 
                 evyonVoice.onended = () => {
                     if (osActive) {
-                        isProcessing = false; // 🟢 SEMÁFORO VERDE: Ya terminó de hablar
+                        isProcessing = false; 
                         setTimeout(() => { try { recognition.start(); } catch(err){} }, 500); 
                     }
                 };
@@ -1478,7 +1568,7 @@
                 
             } catch (err) { 
                 console.error(err);
-                isProcessing = false; // 🟢 SEMÁFORO VERDE
+                isProcessing = false; 
                 setOSState('idle', 'ERROR AUDIO');
                 setTimeout(() => { if(osActive) { try{ recognition.start(); } catch(e){} } }, 3000);
             }
