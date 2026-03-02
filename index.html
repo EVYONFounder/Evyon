@@ -1588,8 +1588,7 @@
 
         async function speakResponse(text) {
             setOSState('speaking');
-            if (recognition) recognition.abort(); // Garantizamos micro apagado al hablar
-
+            
             try {
                 const res = await fetch("https://api.openai.com/v1/audio/speech", {
                     method: "POST",
@@ -1607,10 +1606,7 @@
                 
                 evyonVoice.onended = () => {
                     if (osActive) {
-                        setTimeout(() => { 
-                            setOSState('listening');
-                            try { recognition.start(); } catch(e){} 
-                        }, 500); // Medio segundo para que respires
+                        setTimeout(() => { startVoiceRecognition(); }, 500); 
                     }
                 };
                 
@@ -1619,15 +1615,11 @@
             } catch (err) { 
                 console.error(err);
                 setOSState('idle', 'ERROR AUDIO');
-                setTimeout(() => { 
-                    if(osActive) {
-                        setOSState('listening');
-                        try { recognition.start(); } catch(e){}
-                    } 
-                }, 3000);
+                setTimeout(() => { if(osActive) startVoiceRecognition(); }, 3000);
             }
         }
     </script> 
+
     <div id="neural-layer" style="display:none; opacity:0;">
         <div class="neural-bg"></div>
         
@@ -1648,3 +1640,4 @@
     
 </body>
 </html>
+    
