@@ -1362,7 +1362,7 @@
             }, 500);
         }
 
-        /* --- LÓGICA DE VOZ (V8.0) --- */
+        /* --- LÓGICA DE VOZ (V8.1 - ESTABILIDAD iOS) --- */
         let recognition = null;
         let isProcessing = false; 
         let watchdogTimer = null; 
@@ -1441,16 +1441,16 @@
                 isProcessing = true; 
                 setOSState('processing'); 
                 
-                try { recognition.stop(); } catch(e){}
+                // NOTA VITAL: Eliminamos la orden manual de apagar el micrófono para no romper Safari.
                 
                 if (watchdogTimer) clearTimeout(watchdogTimer);
                 watchdogTimer = setTimeout(() => {
                     if (isProcessing) {
                         isProcessing = false;
-                        setOSState('idle', 'REINICIANDO FLUJO...');
-                        setTimeout(() => { try { recognition.start(); } catch(e){} }, 500);
+                        setOSState('idle', 'TIEMPO EXCEDIDO');
+                        setTimeout(() => { try { recognition.start(); } catch(e){} }, 1000);
                     }
-                }, 12000);
+                }, 15000); 
                 
                 appendMessage("Tú", transcript, "user", false);
                 saveToHistory("user", transcript);
@@ -1464,13 +1464,13 @@
                 const entertainmentRegex = /(pelicula|serie|netflix|cine|videojuego|consola|playstation|xbox|nintendo|meme|chiste|cancion)/i;
 
                 let denialText = null;
-                if (mechanicRegex.test(lowerText)) denialText = "Mi sistema es biológico, no mecánico. Busca un taller.";
-                else if (techRegex.test(lowerText)) denialText = "No soy soporte técnico. No arreglo computadoras, arreglo cuerpos.";
-                else if (schoolRegex.test(lowerText)) denialText = "El aprendizaje es tu entrenamiento mental. Haz tu tarea tú mismo.";
-                else if (homeRegex.test(lowerText)) denialText = "No soy fontanero ni electricista. Yo optimizo tu salud, no tu casa.";
-                else if (moneyRegex.test(lowerText)) denialText = "No doy consejos financieros. Invierte en tu salud.";
-                else if (loveRegex.test(lowerText)) denialText = "No tengo corazón, tengo procesador. Entrena para superar el drama.";
-                else if (entertainmentRegex.test(lowerText)) denialText = "No estoy conectado a Netflix. Si estás aburrido, haz sentadillas.";
+                if (mechanicRegex.test(transcript)) denialText = "Mi sistema es biológico, no mecánico. Busca un taller.";
+                else if (techRegex.test(transcript)) denialText = "No soy soporte técnico. No arreglo computadoras, arreglo cuerpos.";
+                else if (schoolRegex.test(transcript)) denialText = "El aprendizaje es tu entrenamiento mental. Haz tu tarea tú mismo.";
+                else if (homeRegex.test(transcript)) denialText = "No soy fontanero ni electricista. Yo optimizo tu salud, no tu casa.";
+                else if (moneyRegex.test(transcript)) denialText = "No doy consejos financieros. Invierte en tu salud.";
+                else if (loveRegex.test(transcript)) denialText = "No tengo corazón, tengo procesador. Entrena para superar el drama.";
+                else if (entertainmentRegex.test(transcript)) denialText = "No estoy conectado a Netflix. Si estás aburrido, haz sentadillas.";
 
                 if (denialText) {
                     appendMessage("EVYON IA", denialText, "bot", true);
@@ -1503,6 +1503,8 @@
 
                 } catch (e) { 
                     console.error(e); 
+                    // Revelador de errores: Si OpenAI falla, lo imprimirá en tu pantalla
+                    appendMessage("SISTEMA", "Error en IA: " + e.message, "bot", false);
                     setOSState('idle', 'ERROR CONEXIÓN');
                     isProcessing = false; 
                     setTimeout(() => { try{ recognition.start(); } catch(err){} }, 3000);
@@ -1549,7 +1551,10 @@
                     body: JSON.stringify({ model: "tts-1", voice: "nova", input: text })
                 });
                 
-                if (!res.ok) throw new Error("Error TTS");
+                if (!res.ok) {
+                    const errData = await res.json();
+                    throw new Error(errData.error?.message || "Error TTS");
+                }
 
                 const blob = await res.blob();
                 const audioUrl = URL.createObjectURL(blob);
@@ -1568,6 +1573,8 @@
                 
             } catch (err) { 
                 console.error(err);
+                // Revelador de errores: Si la voz falla, lo imprimirá en tu pantalla
+                appendMessage("SISTEMA", "Error Audio: " + err.message, "bot", false);
                 isProcessing = false; 
                 setOSState('idle', 'ERROR AUDIO');
                 setTimeout(() => { if(osActive) { try{ recognition.start(); } catch(e){} } }, 3000);
