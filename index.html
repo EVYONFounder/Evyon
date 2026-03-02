@@ -1556,9 +1556,10 @@
                 evyonVoice.src = audioUrl;
                 evyonVoice.playbackRate = 1.0; 
                 
+                // EVENTO CUANDO EVYON TERMINA DE HABLAR:
                 evyonVoice.onended = () => {
                     if (osActive) {
-                        // Da 500ms y reinicia el oído fresco automáticamente (Manos libres real)
+                        isProcessing = false; // 🟢 ¡EL SEMÁFORO PASA A VERDE! (El fix vital)
                         setTimeout(() => { startVoiceRecognition(); }, 500); 
                     }
                 };
@@ -1567,6 +1568,7 @@
                 
             } catch (err) { 
                 console.error(err);
+                isProcessing = false; // 🟢 Semáforo en verde también si hay error
                 setOSState('idle', 'ERROR AUDIO');
                 setTimeout(() => { if(osActive) startVoiceRecognition(); }, 3000);
             }
