@@ -1263,15 +1263,13 @@
         }
         
         /* ==========================================
-           MÓDULO DE ENLACE NEURAL (CEREBRO V4.0 - FINAL STABLE)
+           MÓDULO DE ENLACE NEURAL (CEREBRO V6.0 - MANOS LIBRES iOS)
            ========================================== */
         
-        // 1. VARIABLES GLOBALES
         let osActive = false;
         let animationFrameId;
-        const evyonVoice = new Audio(); // Reproductor Global Estabilizado
+        const evyonVoice = new Audio(); // Reproductor Global
         
-        // Variables del Motor Visual
         let particles = [];
         const numParticles = 380; 
         let targetSpeed = 0.0015, currentSpeed = 0.0015;
@@ -1279,7 +1277,6 @@
         let targetPulse = 0, currentPulse = 0;
         let glowColor = { r: 0, g: 255, b: 157 }; 
 
-        // 2. INICIALIZAR VISUALES
         function initParticles() {
             particles = [];
             for(let i=0; i<numParticles; i++) {
@@ -1333,11 +1330,9 @@
             animationFrameId = requestAnimationFrame(drawCore);
         }
 
-        // 3. ACTIVAR MODO (CON PRE-CARGA DE AUDIO)
         function activateNeuralMode() {
             if (!apiKey) { checkApiKey(); return; }
             
-            // Truco: Sonido vacío para desbloquear el audio en iPhone
             evyonVoice.src = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABGDZGF0YQQAAAAAAA==";
             evyonVoice.play().catch(e => console.log("Audio unlock:", e));
 
@@ -1358,19 +1353,19 @@
             }, 50);
         }
 
-        // 4. DESACTIVAR MODO
         function deactivateNeuralMode() {
             document.getElementById('neural-layer').style.opacity = 0;
+            osActive = false; // Apagamos bandera primero
             stopVoiceRecognition();
             setTimeout(() => {
-                osActive = false;
                 cancelAnimationFrame(animationFrameId);
                 document.getElementById('neural-layer').style.display = 'none';
             }, 500);
         }
 
-        /* --- LOGICA DE CEREBRO & VOZ V5.1 (SINGLETON FIX) --- */
-        let recognition = null; // Oído único (Evita procesos zombies)
+        /* --- LÓGICA DE VOZ (MANOS LIBRES REAL) --- */
+        let recognition = null;
+        let isProcessing = false; // Bandera vital: nos dice si EVYON está pensando/hablando
         
         function setOSState(state, customText = null) {
             const statusEl = document.getElementById('osStatus');
@@ -1380,6 +1375,7 @@
             layer.classList.remove('aura-listening', 'aura-speaking');
 
             if (state === 'listening') {
+                isProcessing = false; // El usuario tiene el turno
                 targetSpeed = 0.0005; targetPulse = 1.5; targetScale = 1.1;
                 glowColor = { r: 255, g: 255, b: 255 }; 
                 statusEl.innerText = customText || "ESCUCHANDO...";
@@ -1387,6 +1383,7 @@
                 layer.classList.add('aura-listening');
             } 
             else if (state === 'speaking') {
+                isProcessing = true; // EVYON tiene el turno
                 targetSpeed = 0.005; targetPulse = 8.0; targetScale = 1.0;
                 glowColor = { r: 0, g: 255, b: 157 }; 
                 statusEl.innerText = customText || "EVYON RESPONDIENDO";
@@ -1394,12 +1391,14 @@
                 layer.classList.add('aura-speaking');
             }
             else if (state === 'processing') {
+                isProcessing = true; // IA trabajando
                 targetSpeed = 0.002; targetPulse = 3.0; targetScale = 0.9;
                 glowColor = { r: 0, g: 220, b: 255 };
                 statusEl.innerText = "ANALIZANDO...";
                 dot.style.background = "#00dcff"; dot.style.boxShadow = "0 0 15px #00dcff";
             }
             else { 
+                isProcessing = false;
                 targetSpeed = 0.0015; targetPulse = 0; targetScale = 1.0;
                 glowColor = { r: 0, g: 220, b: 255 }; 
                 statusEl.innerText = customText || "EN LÍNEA";
@@ -1407,48 +1406,59 @@
             }
         }
 
-        // FUNCION MANUAL: Si hay ruido y no procesa, el usuario toca la cápsula para forzarlo.
+        // Tocar la cápsula forzará un reinicio absoluto del micrófono si se traba
         function forceProcessVoice() {
-            if (recognition && document.getElementById('osStatus').innerText === "ESCUCHANDO...") {
-                setOSState('processing');
-                recognition.stop(); // Obliga al navegador a escupir lo que escuchó
+            if (osActive) {
+                if (recognition && !isProcessing) recognition.stop();
+                setOSState('idle', 'REINICIANDO MICRO...');
+                setTimeout(() => startVoiceRecognition(), 500);
             }
         }
 
-        // INICIALIZACIÓN ÚNICA (Singleton)
-        function setupRecognitionOnce() {
+        function startVoiceRecognition() {
+            if (!osActive) return; // Seguridad
+            
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) { alert("Tu navegador no soporta voz"); return false; }
+            if (!SpeechRecognition) { alert("Tu navegador no soporta voz"); return; }
             
-            if (recognition) return true; // Si ya existe, no creamos otro.
+            // Destrucción Segura del oído anterior (Evita zombies en iPhone)
+            if (recognition) {
+                recognition.onend = null;
+                recognition.onerror = null;
+                recognition.onresult = null;
+                try { recognition.abort(); } catch(e){}
+            }
             
+            // Oído Fresco
             recognition = new SpeechRecognition();
             recognition.lang = 'es-MX';
             recognition.interimResults = false;
-            recognition.continuous = false;
+            recognition.continuous = false; // iOS no soporta continuous bien
             
             recognition.onstart = () => {
-                const currentStatus = document.getElementById('osStatus').innerText;
-                if(osActive && currentStatus !== "ANALIZANDO..." && currentStatus !== "EVYON RESPONDIENDO") {
-                    setOSState('listening');
-                }
+                if (osActive && !isProcessing) setOSState('listening');
             };
             
             recognition.onerror = (e) => {
-                console.error("Error Voz:", e.error);
-                if (e.error === 'no-speech' || e.error === 'network') {
-                    if (osActive && document.getElementById('osStatus').innerText === "ESCUCHANDO...") {
-                        setTimeout(() => { try { recognition.start(); } catch(err){} }, 800);
+                if (e.error === 'aborted') return; // Apagado intencional
+                
+                if (e.error === 'no-speech') {
+                    // Si hubo silencio, el iPhone apaga el micro. Lo volvemos a prender en automático.
+                    if (osActive && !isProcessing) {
+                        setTimeout(() => startVoiceRecognition(), 300);
                     }
-                } else if (e.error !== 'aborted') {
-                    setOSState('idle', 'REINTENTANDO...');
+                } else {
+                    if (osActive && !isProcessing) {
+                        setOSState('idle', 'RECONECTANDO...');
+                        setTimeout(() => startVoiceRecognition(), 1500);
+                    }
                 }
             };
             
             recognition.onend = () => {
-                // Reinicio suave automático
-                if (osActive && document.getElementById('osStatus').innerText === "ESCUCHANDO...") {
-                   setTimeout(() => { try { recognition.start(); } catch(err){} }, 500);
+                // Ciclo infinito: Si el micro se apaga pero EVYON NO está hablando, vuelve a escuchar.
+                if (osActive && !isProcessing) {
+                    setTimeout(() => startVoiceRecognition(), 300);
                 }
             };
 
@@ -1456,7 +1466,8 @@
                 const transcript = event.results[0][0].transcript;
                 const lowerText = transcript.toLowerCase();
                 
-                setOSState('processing'); // Pausamos el micro
+                setOSState('processing'); // Bloqueamos todo
+                if (recognition) recognition.abort(); // Apagamos micro rápido
                 
                 appendMessage("Tú", transcript, "user", false);
                 saveToHistory("user", transcript);
@@ -1486,7 +1497,7 @@
                     return; 
                 }
 
-                // --- CONEXIÓN IA ---
+                // --- CONEXIÓN LLM ---
                 try {
                     const voicePrompt = getDynamicSystemPrompt(transcript, currentUserData) + 
                                       " [INSTRUCCIÓN DE VOZ: Responde de manera hablada y fluida. MANTÉN TU PERSONALIDAD (Leónidas/Medico/Monje Zen/Chef/Jarvis/Default/NO OLVIDES EL ESCUDO ANTI TRAMPAS) INTACTA. No hagas listas, usa oraciones completas. Máximo 6 frases.]";
@@ -1512,14 +1523,54 @@
                 } catch (e) { 
                     console.error(e); 
                     setOSState('idle', 'ERROR CONEXIÓN');
-                    setTimeout(() => { 
-                        if(osActive) {
-                            setOSState('listening');
-                            try { recognition.start(); } catch(err){}
-                        } 
-                    }, 3000);
+                    setTimeout(() => { if(osActive) startVoiceRecognition(); }, 3000);
                 }
             };
+            
+            try { recognition.start(); } catch(e){}
+        }
+
+        function stopVoiceRecognition() {
+            isProcessing = false;
+            if (recognition) { 
+                recognition.onend = null; 
+                recognition.abort(); 
+            }
+        }
+
+        async function speakResponse(text) {
+            setOSState('speaking');
+            
+            try {
+                const res = await fetch("https://api.openai.com/v1/audio/speech", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
+                    body: JSON.stringify({ model: "tts-1", voice: "nova", input: text })
+                });
+                
+                if (!res.ok) throw new Error("Error TTS");
+
+                const blob = await res.blob();
+                const audioUrl = URL.createObjectURL(blob);
+                
+                evyonVoice.src = audioUrl;
+                evyonVoice.playbackRate = 1.0; 
+                
+                evyonVoice.onended = () => {
+                    if (osActive) {
+                        // Da 500ms y reinicia el oído fresco automáticamente (Manos libres real)
+                        setTimeout(() => { startVoiceRecognition(); }, 500); 
+                    }
+                };
+                
+                await evyonVoice.play();
+                
+            } catch (err) { 
+                console.error(err);
+                setOSState('idle', 'ERROR AUDIO');
+                setTimeout(() => { if(osActive) startVoiceRecognition(); }, 3000);
+            }
+        }
             return true;
         }
 
