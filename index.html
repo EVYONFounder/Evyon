@@ -1369,8 +1369,8 @@
             }, 500);
         }
 
-        /* --- LOGICA DE CEREBRO & VOZ V4.0 --- */
-        let recognition;
+        /* --- LOGICA DE CEREBRO & VOZ V5.1 (SINGLETON FIX) --- */
+        let recognition = null; // Oído único (Evita procesos zombies)
         
         function setOSState(state, customText = null) {
             const statusEl = document.getElementById('osStatus');
@@ -1407,35 +1407,48 @@
             }
         }
 
-        function startVoiceRecognition() {
+        // FUNCION MANUAL: Si hay ruido y no procesa, el usuario toca la cápsula para forzarlo.
+        function forceProcessVoice() {
+            if (recognition && document.getElementById('osStatus').innerText === "ESCUCHANDO...") {
+                setOSState('processing');
+                recognition.stop(); // Obliga al navegador a escupir lo que escuchó
+            }
+        }
+
+        // INICIALIZACIÓN ÚNICA (Singleton)
+        function setupRecognitionOnce() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) { alert("Tu navegador no soporta voz"); return; }
+            if (!SpeechRecognition) { alert("Tu navegador no soporta voz"); return false; }
             
-            // Limpieza de seguridad
-            if (recognition) { try { recognition.abort(); } catch(e){} }
+            if (recognition) return true; // Si ya existe, no creamos otro.
             
             recognition = new SpeechRecognition();
             recognition.lang = 'es-MX';
             recognition.interimResults = false;
-            recognition.continuous = false; // Vital para evitar errores
+            recognition.continuous = false;
             
-            recognition.onstart = () => setOSState('listening');
+            recognition.onstart = () => {
+                const currentStatus = document.getElementById('osStatus').innerText;
+                if(osActive && currentStatus !== "ANALIZANDO..." && currentStatus !== "EVYON RESPONDIENDO") {
+                    setOSState('listening');
+                }
+            };
             
             recognition.onerror = (e) => {
                 console.error("Error Voz:", e.error);
                 if (e.error === 'no-speech' || e.error === 'network') {
-                    setOSState('idle', '...');
-                    // Reintento suave si no escuchó
-                    if(osActive) setTimeout(() => { try { recognition.start(); } catch(e){} }, 500);
-                } else {
+                    if (osActive && document.getElementById('osStatus').innerText === "ESCUCHANDO...") {
+                        setTimeout(() => { try { recognition.start(); } catch(err){} }, 800);
+                    }
+                } else if (e.error !== 'aborted') {
                     setOSState('idle', 'REINTENTANDO...');
                 }
             };
             
-            // Loop de seguridad para mantenerlo vivo
             recognition.onend = () => {
+                // Reinicio suave automático
                 if (osActive && document.getElementById('osStatus').innerText === "ESCUCHANDO...") {
-                   setTimeout(() => { try { recognition.start(); } catch(e){} }, 500);
+                   setTimeout(() => { try { recognition.start(); } catch(err){} }, 500);
                 }
             };
 
@@ -1443,17 +1456,12 @@
                 const transcript = event.results[0][0].transcript;
                 const lowerText = transcript.toLowerCase();
                 
-                // Detenemos para procesar
-                recognition.onend = null; 
-                recognition.stop();
-                setOSState('processing'); 
+                setOSState('processing'); // Pausamos el micro
                 
                 appendMessage("Tú", transcript, "user", false);
                 saveToHistory("user", transcript);
 
-                // ====================================================
-                // 🛡️ CORTAFUEGOS DE VOZ COMPLETO (V5.0)
-                // ====================================================
+                // --- 🛡️ CORTAFUEGOS ---
                 const mechanicRegex = /(llanta|neumatico|rueda|ponchada|bujia|carburador|motor(?![\s\S]*biologico)|aceite(?![\s\S]*(oliva|coco|cocina))|frenos|clutch|radiador|mecanic|taller|chevrolet|ford|nissan|toyota|coche|carro|camioneta|vehiculo|moto|automovil)/i;
                 const techRegex = /(computadora|laptop|ordenador|pc|tablet|celular|movil|formatear|instalar|actualizar|tarjeta grafica|gpu|cpu|ram|windows|linux|excel|programar|codigo|python|java|hackear|wifi|internet)/i;
                 const schoolRegex = /(tarea de|deberes|resumen|ensayo|historia|guerra|geografia|matematicas|algebra|calculo|politica|presidente|elecciones|religion|biblia|poema|literatura|filosofia)/i;
@@ -1463,7 +1471,6 @@
                 const entertainmentRegex = /(pelicula|serie|netflix|cine|videojuego|consola|playstation|xbox|nintendo|meme|chiste|cancion)/i;
 
                 let denialText = null;
-
                 if (mechanicRegex.test(lowerText)) denialText = "Mi sistema es biológico, no mecánico. Busca un taller.";
                 else if (techRegex.test(lowerText)) denialText = "No soy soporte técnico. No arreglo computadoras, arreglo cuerpos.";
                 else if (schoolRegex.test(lowerText)) denialText = "El aprendizaje es tu entrenamiento mental. Haz tu tarea tú mismo.";
@@ -1476,17 +1483,13 @@
                     appendMessage("EVYON IA", denialText, "bot", true);
                     saveToHistory("assistant", denialText);
                     await speakResponse(denialText);
-                    return; // 🛑 ALTO TOTAL: El cortafuegos bloqueó la llamada a la IA
+                    return; 
                 }
 
-                // ====================================================
-                // FIN CORTAFUEGOS - CONEXIÓN CON IA
-                // ====================================================
-
+                // --- CONEXIÓN IA ---
                 try {
-                    // INSTRUCCIÓN DE PERSONALIDAD (Conversacional + Rol)
                     const voicePrompt = getDynamicSystemPrompt(transcript, currentUserData) + 
-                                      " [INSTRUCCIÓN DE VOZ: Responde de manera hablada y fluida. MANTÉN TU PERSONALIDAD (Leónidas/Medico/Monje Zen/Chef/Jarvis/Default/NO OLVIDES EL ESCUDO ANTI TRAMPAS). No hagas listas, usa oraciones completas. Máximo 6 frases.]";
+                                      " [INSTRUCCIÓN DE VOZ: Responde de manera hablada y fluida. MANTÉN TU PERSONALIDAD (Leónidas/Medico/Monje Zen/Chef/Jarvis/Default/NO OLVIDES EL ESCUDO ANTI TRAMPAS) INTACTA. No hagas listas, usa oraciones completas. Máximo 6 frases.]";
                     
                     let res = await fetch("https://api.openai.com/v1/chat/completions", {
                         method: "POST",
@@ -1509,33 +1512,38 @@
                 } catch (e) { 
                     console.error(e); 
                     setOSState('idle', 'ERROR CONEXIÓN');
-                    // Reintento automático
-                    setTimeout(() => { if(osActive) startVoiceRecognition(); }, 2000);
+                    setTimeout(() => { 
+                        if(osActive) {
+                            setOSState('listening');
+                            try { recognition.start(); } catch(err){}
+                        } 
+                    }, 3000);
                 }
             };
-            
-            try { recognition.start(); } catch(e){}
+            return true;
+        }
+
+        // Nuevos lanzadores
+        function startVoiceRecognition() {
+            if(setupRecognitionOnce()) {
+                setOSState('listening');
+                try { recognition.start(); } catch(e){}
+            }
         }
 
         function stopVoiceRecognition() {
-            if (recognition) { recognition.onend = null; recognition.abort(); }
+            if (recognition) { recognition.abort(); }
         }
 
         async function speakResponse(text) {
             setOSState('speaking');
-            
-            // Detenemos el reconocimiento explícitamente mientras habla
-            if (recognition) recognition.abort();
+            if (recognition) recognition.abort(); // Garantizamos micro apagado al hablar
 
             try {
                 const res = await fetch("https://api.openai.com/v1/audio/speech", {
                     method: "POST",
                     headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
-                    body: JSON.stringify({ 
-                        model: "tts-1", 
-                        voice: "nova", // Nova es la más equilibrada
-                        input: text 
-                    })
+                    body: JSON.stringify({ model: "tts-1", voice: "nova", input: text })
                 });
                 
                 if (!res.ok) throw new Error("Error TTS");
@@ -1544,15 +1552,14 @@
                 const audioUrl = URL.createObjectURL(blob);
                 
                 evyonVoice.src = audioUrl;
-                evyonVoice.playbackRate = 1.0; // Aseguramos velocidad normal (evita "arrastre")
+                evyonVoice.playbackRate = 1.0; 
                 
-                // EVENTO CLAVE: CUANDO TERMINA DE HABLAR
                 evyonVoice.onended = () => {
                     if (osActive) {
-                        // Damos un respiro de 200ms y reiniciamos el oído
                         setTimeout(() => { 
-                            startVoiceRecognition(); 
-                        }, 200);
+                            setOSState('listening');
+                            try { recognition.start(); } catch(e){} 
+                        }, 500); // Medio segundo para que respires
                     }
                 };
                 
@@ -1561,7 +1568,12 @@
             } catch (err) { 
                 console.error(err);
                 setOSState('idle', 'ERROR AUDIO');
-                setTimeout(() => { if(osActive) startVoiceRecognition(); }, 2000);
+                setTimeout(() => { 
+                    if(osActive) {
+                        setOSState('listening');
+                        try { recognition.start(); } catch(e){}
+                    } 
+                }, 3000);
             }
         }
     </script> 
