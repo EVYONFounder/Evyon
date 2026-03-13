@@ -1362,10 +1362,9 @@
             }, 500);
         }
 
-        /* --- LÓGICA DE VOZ (V8.1 - ESTABILIDAD iOS) --- */
+        /* --- LÓGICA DE VOZ (V10.0 - MODO WALKIE-TALKIE iOS) --- */
         let recognition = null;
         let isProcessing = false; 
-        let watchdogTimer = null; 
         
         function setOSState(state, customText = null) {
             const statusEl = document.getElementById('osStatus');
@@ -1377,14 +1376,14 @@
             if (state === 'listening') {
                 targetSpeed = 0.0005; targetPulse = 1.5; targetScale = 1.1;
                 glowColor = { r: 255, g: 255, b: 255 }; 
-                statusEl.innerText = customText || "ESCUCHANDO...";
+                statusEl.innerText = "ESCUCHANDO...";
                 dot.style.background = "#ffffff"; dot.style.boxShadow = "0 0 10px #ffffff";
                 layer.classList.add('aura-listening');
             } 
             else if (state === 'speaking') {
                 targetSpeed = 0.005; targetPulse = 8.0; targetScale = 1.0;
                 glowColor = { r: 0, g: 255, b: 157 }; 
-                statusEl.innerText = customText || "EVYON RESPONDIENDO";
+                statusEl.innerText = "EVYON RESPONDIENDO";
                 dot.style.background = "#3cd186"; dot.style.boxShadow = "0 0 15px #3cd186";
                 layer.classList.add('aura-speaking');
             }
@@ -1394,10 +1393,11 @@
                 statusEl.innerText = "ANALIZANDO...";
                 dot.style.background = "#00dcff"; dot.style.boxShadow = "0 0 15px #00dcff";
             }
-            else { 
+            else if (state === 'ready') { 
+                // NUEVO ESTADO: Esperando acción manual del usuario
                 targetSpeed = 0.0015; targetPulse = 0; targetScale = 1.0;
-                glowColor = { r: 0, g: 220, b: 255 }; 
-                statusEl.innerText = customText || "EN LÍNEA";
+                glowColor = { r: 100, g: 116, b: 139 }; // Gris Platinado
+                statusEl.innerText = customText || "TOCA PARA HABLAR";
                 dot.style.background = "rgba(255,255,255,0.5)"; dot.style.boxShadow = "none";
             }
         }
@@ -1419,16 +1419,14 @@
 
             recognition.onerror = (e) => {
                 if (e.error === 'aborted') return; 
-                if (e.error === 'no-speech') {
-                    if (osActive && !isProcessing) {
-                        setTimeout(() => { try { recognition.start(); } catch(err){} }, 300);
-                    }
+                if (e.error === 'no-speech' && osActive && !isProcessing) {
+                    setOSState('ready'); // Si no escuchó nada, regresa a reposo
                 }
             };
 
             recognition.onend = () => {
                 if (osActive && !isProcessing) {
-                    setTimeout(() => { try { recognition.start(); } catch(err){} }, 400); 
+                    setOSState('ready'); // Se apagó el micro, regresa a reposo
                 }
             };
 
@@ -1436,25 +1434,15 @@
                 if (isProcessing) return; 
 
                 const transcript = event.results[0][0].transcript.trim();
-                if (!transcript) return;
+                if (!transcript) { setOSState('ready'); return; }
 
                 isProcessing = true; 
                 setOSState('processing'); 
                 
-                // NOTA VITAL: Eliminamos la orden manual de apagar el micrófono para no romper Safari.
-                
-                if (watchdogTimer) clearTimeout(watchdogTimer);
-                watchdogTimer = setTimeout(() => {
-                    if (isProcessing) {
-                        isProcessing = false;
-                        setOSState('idle', 'TIEMPO EXCEDIDO');
-                        setTimeout(() => { try { recognition.start(); } catch(e){} }, 1000);
-                    }
-                }, 15000); 
-                
                 appendMessage("Tú", transcript, "user", false);
                 saveToHistory("user", transcript);
 
+                // --- CORTAFUEGOS ---
                 const mechanicRegex = /(llanta|neumatico|rueda|ponchada|bujia|carburador|motor(?![\s\S]*biologico)|aceite(?![\s\S]*(oliva|coco|cocina))|frenos|clutch|radiador|mecanic|taller|chevrolet|ford|nissan|toyota|coche|carro|camioneta|vehiculo|moto|automovil)/i;
                 const techRegex = /(computadora|laptop|ordenador|pc|tablet|celular|movil|formatear|instalar|actualizar|tarjeta grafica|gpu|cpu|ram|windows|linux|excel|programar|codigo|python|java|hackear|wifi|internet)/i;
                 const schoolRegex = /(tarea de|deberes|resumen|ensayo|historia|guerra|geografia|matematicas|algebra|calculo|politica|presidente|elecciones|religion|biblia|poema|literatura|filosofia)/i;
@@ -1503,51 +1491,51 @@
 
                 } catch (e) { 
                     console.error(e); 
-                    // Revelador de errores: Si OpenAI falla, lo imprimirá en tu pantalla
                     appendMessage("SISTEMA", "Error en IA: " + e.message, "bot", false);
-                    setOSState('idle', 'ERROR CONEXIÓN');
                     isProcessing = false; 
-                    setTimeout(() => { try{ recognition.start(); } catch(err){} }, 3000);
+                    setOSState('ready', 'ERROR DE RED - TOCA DE NUEVO');
                 }
             };
         }
 
+        // === EL CORAZÓN DEL MODO WALKIE-TALKIE ===
         function forceProcessVoice() {
-            if (osActive) {
-                isProcessing = false;
-                if (watchdogTimer) clearTimeout(watchdogTimer);
+            if (!osActive) return;
+            
+            const currentStatus = document.getElementById('osStatus').innerText;
+            
+            if (currentStatus === "ESCUCHANDO...") {
+                // Si está escuchando y el usuario le pica, lo apagamos para que procese YA
                 if (recognition) { try { recognition.stop(); } catch(e){} }
-                setOSState('idle', 'REINICIO MANUAL...');
-                setTimeout(() => { try { recognition.start(); } catch(e){} }, 500);
+            } 
+            else if (!isProcessing) {
+                // Si está en reposo, encendemos el micro limpiamente
+                initEvyonEar();
+                try { recognition.start(); } catch(e){}
             }
         }
 
         function startVoiceRecognition() {
             if (!osActive) return; 
-            
-            // LA REGLA DE ORO DE iOS: Nunca destruyas el objeto. 
-            // Si creas uno nuevo sin un "click" manual, Apple lo silencia.
             initEvyonEar(); 
-            
+            // La primera vez que entra a la pantalla, escucha automático. 
+            // Las demás veces, espera a que el usuario toque el botón.
             if (!isProcessing) {
                 try { recognition.start(); } catch(e){}
             }
         }
 
-
         function stopVoiceRecognition() {
             isProcessing = false;
-            if (watchdogTimer) clearTimeout(watchdogTimer);
-            
-            // Lo pausamos con delicadeza, sin borrarlo de la memoria
             if (recognition) { 
-                try { recognition.stop(); } catch(e){} 
+                recognition.onend = null; 
+                try { recognition.abort(); } catch(e){} 
+                recognition = null; 
             }
         }
 
         async function speakResponse(text) {
             setOSState('speaking');
-            if (watchdogTimer) clearTimeout(watchdogTimer); 
             
             try {
                 const res = await fetch("https://api.openai.com/v1/audio/speech", {
@@ -1570,8 +1558,8 @@
                 evyonVoice.onended = () => {
                     if (osActive) {
                         isProcessing = false; 
-                        // CAMBIO CLAVE: Pedimos un oído nuevo en lugar de reciclar
-                        setTimeout(() => { startVoiceRecognition(); }, 500); 
+                        // LA MAGIA: Cuando termina de hablar, se pone en estado Ready.
+                        setOSState('ready'); 
                     }
                 };
                 
@@ -1581,8 +1569,7 @@
                 console.error(err);
                 appendMessage("SISTEMA", "Error Audio: " + err.message, "bot", false);
                 isProcessing = false; 
-                setOSState('idle', 'ERROR AUDIO');
-                setTimeout(() => { if(osActive) startVoiceRecognition(); }, 3000);
+                setOSState('ready', 'ERROR AUDIO - TOCA DE NUEVO');
             }
         }
             
