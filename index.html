@@ -1524,7 +1524,18 @@
 
         function startVoiceRecognition() {
             if (!osActive) return; 
+            
+            // 1. MATAMOS EL OÍDO ZOMBIE (El truco para iOS)
+            if (recognition) {
+                recognition.onend = null;
+                recognition.onerror = null;
+                try { recognition.abort(); } catch(e){}
+                recognition = null; // Al ser null, forzamos a crear uno 100% nuevo
+            }
+
+            // 2. CREAMOS EL OÍDO FRESCO
             initEvyonEar(); 
+            
             if (!isProcessing) {
                 try { recognition.start(); } catch(e){}
             }
@@ -1565,7 +1576,8 @@
                 evyonVoice.onended = () => {
                     if (osActive) {
                         isProcessing = false; 
-                        setTimeout(() => { try { recognition.start(); } catch(err){} }, 500); 
+                        // CAMBIO CLAVE: Pedimos un oído nuevo en lugar de reciclar
+                        setTimeout(() => { startVoiceRecognition(); }, 500); 
                     }
                 };
                 
@@ -1573,11 +1585,10 @@
                 
             } catch (err) { 
                 console.error(err);
-                // Revelador de errores: Si la voz falla, lo imprimirá en tu pantalla
                 appendMessage("SISTEMA", "Error Audio: " + err.message, "bot", false);
                 isProcessing = false; 
                 setOSState('idle', 'ERROR AUDIO');
-                setTimeout(() => { if(osActive) { try{ recognition.start(); } catch(e){} } }, 3000);
+                setTimeout(() => { if(osActive) startVoiceRecognition(); }, 3000);
             }
         }
             
