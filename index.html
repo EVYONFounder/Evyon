@@ -1525,13 +1525,14 @@
         function startVoiceRecognition() {
             if (!osActive) return; 
             
-            // 1. MATAMOS EL OÍDO ZOMBIE (El truco para iOS)
-            if (recognition) {
-                recognition.onend = null;
-                recognition.onerror = null;
-                try { recognition.abort(); } catch(e){}
-                recognition = null; // Al ser null, forzamos a crear uno 100% nuevo
+            // LA REGLA DE ORO DE iOS: Nunca destruyas el objeto. 
+            // Si creas uno nuevo sin un "click" manual, Apple lo silencia.
+            initEvyonEar(); 
+            
+            if (!isProcessing) {
+                try { recognition.start(); } catch(e){}
             }
+        }
 
             // 2. CREAMOS EL OÍDO FRESCO
             initEvyonEar(); 
@@ -1544,10 +1545,10 @@
         function stopVoiceRecognition() {
             isProcessing = false;
             if (watchdogTimer) clearTimeout(watchdogTimer);
+            
+            // Lo pausamos con delicadeza, sin borrarlo de la memoria
             if (recognition) { 
-                recognition.onend = null; 
-                try { recognition.abort(); } catch(e){} 
-                recognition = null; 
+                try { recognition.stop(); } catch(e){} 
             }
         }
 
